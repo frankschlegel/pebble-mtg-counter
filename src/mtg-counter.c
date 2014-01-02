@@ -2,6 +2,7 @@
 
 
 #define LIFE_DEFAULT 20
+#define REPEATING_CLICK_INTERVAL 500
 
 
 static Window* window;
@@ -31,18 +32,20 @@ static void select_click_handler(ClickRecognizerRef recognizer, void* context) {
   //TODO
 }
 
-static void up_click_handler(ClickRecognizerRef recognizer, void* context) {
-  //TODO
+static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
+  --life_opponent;
+  update_opponent_life_counter();
 }
 
-static void down_click_handler(ClickRecognizerRef recognizer, void* context) {
-  //TODO
+static void down_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
+  --life_player;
+  update_player_life_counter();
 }
 
 static void click_config_provider(void* context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+  window_single_repeating_click_subscribe(BUTTON_ID_UP,   REPEATING_CLICK_INTERVAL, up_repeating_click_handler);
+  window_single_repeating_click_subscribe(BUTTON_ID_DOWN, REPEATING_CLICK_INTERVAL, down_repeating_click_handler);
 }
 
 static void window_load(Window* window) {
@@ -51,13 +54,13 @@ static void window_load(Window* window) {
 
   text_layer_life_opponent = text_layer_create((GRect) { .origin = { 0, 0 }, .size = { bounds.size.w, 60 } });
   text_layer_set_text_alignment(text_layer_life_opponent, GTextAlignmentCenter);
-  text_layer_set_font(text_layer_life_opponent, fonts_get_system_font(FONT_KEY_ROBOTO_BOLD_SUBSET_49));
+  text_layer_set_font(text_layer_life_opponent, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
   update_opponent_life_counter();
   layer_add_child(window_layer, text_layer_get_layer(text_layer_life_opponent));
 
   text_layer_life_player = text_layer_create((GRect) { .origin = { 0, 80 }, .size = { bounds.size.w, 60 } });
   text_layer_set_text_alignment(text_layer_life_player, GTextAlignmentCenter);
-  text_layer_set_font(text_layer_life_player, fonts_get_system_font(FONT_KEY_ROBOTO_BOLD_SUBSET_49));
+  text_layer_set_font(text_layer_life_player, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
   update_player_life_counter();
   layer_add_child(window_layer, text_layer_get_layer(text_layer_life_player));
 }
