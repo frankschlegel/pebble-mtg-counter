@@ -1,0 +1,17 @@
+{
+  "uuid": "16eeb053-da37-4d54-8cea-5db05c8d86e9",
+  "shortName": "mtg-counter",
+  "longName": "mtg-counter",
+  "companyName": "MakeAwesomeHappen",
+  "versionCode": 1,
+  "versionLabel": "1.0.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "dummy": 0
+  },
+  "resources": {
+    "media": []
+  }
+}
