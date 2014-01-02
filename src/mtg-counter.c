@@ -73,6 +73,8 @@ static void window_load(Window* window) {
   // load the icons
   action_icon_plus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_PLUS);
   action_icon_minus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_MINUS);
+  GBitmap* action_icon_toggle = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_TOGGLE);
+  action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_SELECT, action_icon_toggle);
   update_action_bar();
   // associate the action bar with the window
   action_bar_layer_add_to_window(action_bar_layer, window);

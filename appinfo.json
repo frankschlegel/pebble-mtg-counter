@@ -22,6 +22,11 @@
         "type": "png",
         "name": "IMAGE_ACTION_ICON_MINUS",
         "file": "images/action_icon_minus.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_ACTION_ICON_TOGGLE",
+        "file": "images/action_icon_toggle.png"
       }
     ]
   }
