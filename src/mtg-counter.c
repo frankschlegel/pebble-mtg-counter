@@ -6,6 +6,13 @@
 #define REPEATING_CLICK_INTERVAL 500
 
 
+enum PKEY {
+  LIFE_OPPONENT_PKEY,
+  LIFE_PLAYER_PKEY,
+  LIFE_STEP_PKEY,
+};
+
+
 static Window* window;
 
 static TextLayer* text_layer_life_opponent;
@@ -14,6 +21,7 @@ static TextLayer* text_layer_life_player;
 static ActionBarLayer* action_bar_layer;
 static GBitmap* action_icon_plus;
 static GBitmap* action_icon_minus;
+static GBitmap* action_icon_toggle;
 
 
 static int life_opponent = LIFE_DEFAULT;
@@ -21,6 +29,18 @@ static int life_player = LIFE_DEFAULT;
 
 static short life_step = LIFE_STEP_DEFAULT;
 
+
+static void read_state() {
+  life_opponent = persist_exists(LIFE_OPPONENT_PKEY) ? persist_read_int(LIFE_OPPONENT_PKEY) : LIFE_DEFAULT;
+  life_player   = persist_exists(LIFE_PLAYER_PKEY)   ? persist_read_int(LIFE_PLAYER_PKEY)   : LIFE_DEFAULT;
+  life_step     = persist_exists(LIFE_STEP_PKEY)     ? persist_read_int(LIFE_STEP_PKEY)     : LIFE_STEP_DEFAULT;
+}
+
+static void safe_state() {
+  persist_write_int(LIFE_OPPONENT_PKEY, life_opponent);
+  persist_write_int(LIFE_PLAYER_PKEY, life_player);
+  persist_write_int(LIFE_STEP_PKEY, life_step);
+}
 
 static void update_opponent_life_counter() {
   static char text[5];
@@ -73,7 +93,7 @@ static void window_load(Window* window) {
   // load the icons
   action_icon_plus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_PLUS);
   action_icon_minus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_MINUS);
-  GBitmap* action_icon_toggle = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_TOGGLE);
+  action_icon_toggle = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_TOGGLE);
   action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_SELECT, action_icon_toggle);
   update_action_bar();
   // associate the action bar with the window
@@ -97,21 +117,27 @@ static void window_load(Window* window) {
 static void window_unload(Window* window) {
   text_layer_destroy(text_layer_life_opponent);
   text_layer_destroy(text_layer_life_player);
+  action_bar_layer_destroy(action_bar_layer);
+  gbitmap_destroy(action_icon_plus);
+  gbitmap_destroy(action_icon_minus);
+  gbitmap_destroy(action_icon_toggle);
 }
 
 static void init(void) {
-  window = window_create();
+  read_state();
 
+  window = window_create();
   // window_set_click_config_provider(window, click_config_provider);
   window_set_window_handlers(window, (WindowHandlers) {
     .load = window_load,
     .unload = window_unload,
   });
-
   window_stack_push(window, true /*animated*/);
 }
 
 static void deinit(void) {
+  safe_state();
+
   window_destroy(window);
 }
 
