@@ -10,6 +10,7 @@ enum PKEY {
   LIFE_OPPONENT_PKEY,
   LIFE_PLAYER_PKEY,
   LIFE_STEP_PKEY,
+  MATCH_START_TIME_PKEY,
 };
 
 
@@ -38,13 +39,14 @@ static void read_state() {
   life_player   = persist_exists(LIFE_PLAYER_PKEY)   ? persist_read_int(LIFE_PLAYER_PKEY)   : LIFE_DEFAULT;
   life_step     = persist_exists(LIFE_STEP_PKEY)     ? persist_read_int(LIFE_STEP_PKEY)     : LIFE_STEP_DEFAULT;
 
-  match_start_time = time(NULL);
+  match_start_time = persist_exists(MATCH_START_TIME_PKEY) ? persist_read_int(MATCH_START_TIME_PKEY) : time(NULL);
 }
 
 static void safe_state() {
   persist_write_int(LIFE_OPPONENT_PKEY, life_opponent);
   persist_write_int(LIFE_PLAYER_PKEY, life_player);
   persist_write_int(LIFE_STEP_PKEY, life_step);
+  persist_write_int(MATCH_START_TIME_PKEY, match_start_time);
 }
 
 static void update_opponent_life_counter() {
