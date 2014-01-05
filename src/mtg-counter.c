@@ -17,6 +17,7 @@ static Window* window;
 
 static TextLayer* text_layer_life_opponent;
 static TextLayer* text_layer_life_player;
+static TextLayer* text_layer_match_timer;
 
 static ActionBarLayer* action_bar_layer;
 static GBitmap* action_icon_plus;
@@ -26,14 +27,18 @@ static GBitmap* action_icon_toggle;
 
 static int life_opponent = LIFE_DEFAULT;
 static int life_player = LIFE_DEFAULT;
-
 static short life_step = LIFE_STEP_DEFAULT;
+
+
+static time_t match_start_time;
 
 
 static void read_state() {
   life_opponent = persist_exists(LIFE_OPPONENT_PKEY) ? persist_read_int(LIFE_OPPONENT_PKEY) : LIFE_DEFAULT;
   life_player   = persist_exists(LIFE_PLAYER_PKEY)   ? persist_read_int(LIFE_PLAYER_PKEY)   : LIFE_DEFAULT;
   life_step     = persist_exists(LIFE_STEP_PKEY)     ? persist_read_int(LIFE_STEP_PKEY)     : LIFE_STEP_DEFAULT;
+
+  match_start_time = time(NULL);
 }
 
 static void safe_state() {
@@ -61,6 +66,14 @@ static void update_action_bar() {
   action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_DOWN, icon);
 }
 
+static void update_match_timer() {
+  time_t diff = time(NULL) - match_start_time;
+
+  static char text[9];
+  strftime(text, 9, "%H:%M:%S", localtime(&diff));
+  text_layer_set_text(text_layer_match_timer, text);
+}
+
 
 static void select_click_handler(ClickRecognizerRef recognizer, void* context) {
   // toggle step direction
@@ -69,11 +82,13 @@ static void select_click_handler(ClickRecognizerRef recognizer, void* context) {
 }
 
 static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
+  //TODO: cap
   life_opponent += life_step;
   update_opponent_life_counter();
 }
 
 static void down_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
+  //TODO: cap
   life_player += life_step;
   update_player_life_counter();
 }
@@ -83,6 +98,12 @@ static void click_config_provider(void* context) {
   window_single_repeating_click_subscribe(BUTTON_ID_UP,   REPEATING_CLICK_INTERVAL, up_repeating_click_handler);
   window_single_repeating_click_subscribe(BUTTON_ID_DOWN, REPEATING_CLICK_INTERVAL, down_repeating_click_handler);
 }
+
+
+static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+  update_match_timer();
+}
+
 
 static void window_load(Window* window) {
   Layer* window_layer = window_get_root_layer(window);
@@ -112,11 +133,18 @@ static void window_load(Window* window) {
   text_layer_set_font(text_layer_life_player, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
   update_player_life_counter();
   layer_add_child(window_layer, text_layer_get_layer(text_layer_life_player));
+
+  text_layer_match_timer = text_layer_create((GRect) { .origin = { 0, 50 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 40 } });
+  text_layer_set_text_alignment(text_layer_match_timer, GTextAlignmentCenter);
+  text_layer_set_font(text_layer_match_timer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  update_match_timer();
+  layer_add_child(window_layer, text_layer_get_layer(text_layer_match_timer));
 }
 
 static void window_unload(Window* window) {
   text_layer_destroy(text_layer_life_opponent);
   text_layer_destroy(text_layer_life_player);
+  text_layer_destroy(text_layer_match_timer);
   action_bar_layer_destroy(action_bar_layer);
   gbitmap_destroy(action_icon_plus);
   gbitmap_destroy(action_icon_minus);
@@ -133,6 +161,9 @@ static void init(void) {
     .unload = window_unload,
   });
   window_stack_push(window, true /*animated*/);
+
+  // register callback for match timer
+  tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
 }
 
 static void deinit(void) {
@@ -143,9 +174,6 @@ static void deinit(void) {
 
 int main(void) {
   init();
-
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Done initializing, pushed window: %p", window);
-
   app_event_loop();
   deinit();
 }
