@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "menu.h"
 
 
 #define LIFE_DEFAULT 20
@@ -14,7 +15,8 @@ enum PKEY {
 };
 
 
-static Window* window;
+static Window* main_window;
+static Window* menu_window;
 
 static TextLayer* text_layer_life_opponent;
 static TextLayer* text_layer_life_player;
@@ -83,6 +85,11 @@ static void select_click_handler(ClickRecognizerRef recognizer, void* context) {
   update_action_bar();
 }
 
+static void select_long_click_handler(ClickRecognizerRef recognizer, void* context) {
+  // show menu
+  window_stack_push(menu_window, true);
+}
+
 static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
   //TODO: cap
   life_opponent += life_step;
@@ -97,6 +104,7 @@ static void down_repeating_click_handler(ClickRecognizerRef recognizer, void* co
 
 static void click_config_provider(void* context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 0, select_long_click_handler, NULL);
   window_single_repeating_click_subscribe(BUTTON_ID_UP,   REPEATING_CLICK_INTERVAL, up_repeating_click_handler);
   window_single_repeating_click_subscribe(BUTTON_ID_DOWN, REPEATING_CLICK_INTERVAL, down_repeating_click_handler);
 }
@@ -107,7 +115,19 @@ static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 
-static void window_load(Window* window) {
+static void menu_select_game_reset_callback(int index, void *ctx) {
+  life_opponent = LIFE_DEFAULT;
+  life_player = LIFE_DEFAULT;
+  match_start_time = time(NULL);
+  update_opponent_life_counter();
+  update_player_life_counter();
+  update_match_timer();
+  // hide menu
+  window_stack_pop(true);
+}
+
+
+static void main_window_load(Window* window) {
   Layer* window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
@@ -143,26 +163,45 @@ static void window_load(Window* window) {
   layer_add_child(window_layer, text_layer_get_layer(text_layer_match_timer));
 }
 
-static void window_unload(Window* window) {
+static void main_window_unload(Window* window) {
   text_layer_destroy(text_layer_life_opponent);
   text_layer_destroy(text_layer_life_player);
   text_layer_destroy(text_layer_match_timer);
   action_bar_layer_destroy(action_bar_layer);
+  // destory the menu when the main window onloads only
+  destroy_menu();
   gbitmap_destroy(action_icon_plus);
   gbitmap_destroy(action_icon_minus);
   gbitmap_destroy(action_icon_toggle);
 }
 
+static void menu_window_load(Window* window) {
+  Layer* window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_bounds(window_layer);
+
+  SimpleMenuLayer* menu_layer = init_menu(bounds, window, (MTGCounterMenuSelectionCallbacks) {
+    .game_reset = menu_select_game_reset_callback,
+  });
+
+  layer_add_child(window_layer, simple_menu_layer_get_layer(menu_layer));
+}
+
 static void init(void) {
   read_state();
 
-  window = window_create();
+  main_window = window_create();
   // window_set_click_config_provider(window, click_config_provider);
-  window_set_window_handlers(window, (WindowHandlers) {
-    .load = window_load,
-    .unload = window_unload,
+  window_set_window_handlers(main_window, (WindowHandlers) {
+    .load = main_window_load,
+    .unload = main_window_unload,
   });
-  window_stack_push(window, true /*animated*/);
+
+  menu_window = window_create();
+  window_set_window_handlers(menu_window, (WindowHandlers) {
+    .load = menu_window_load,
+  });
+
+  window_stack_push(main_window, true /*animated*/);
 
   // register callback for match timer
   tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
@@ -171,7 +210,7 @@ static void init(void) {
 static void deinit(void) {
   safe_state();
 
-  window_destroy(window);
+  window_destroy(main_window);
 }
 
 int main(void) {
