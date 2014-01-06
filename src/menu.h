@@ -5,5 +5,7 @@ typedef struct MTGCounterMenuSelectionCallbacks
   SimpleMenuLayerSelectCallback game_reset;
 } MTGCounterMenuSelectionCallbacks;
 
-SimpleMenuLayer* init_menu(GRect bounds, Window* window, MTGCounterMenuSelectionCallbacks selection_callbacks);
-void destroy_menu(void);
+void set_menu_callbacks(MTGCounterMenuSelectionCallbacks selection_callbacks);
+void show_menu();
+void hide_menu();
+void destroy_menu();

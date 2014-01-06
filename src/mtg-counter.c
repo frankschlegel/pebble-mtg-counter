@@ -21,7 +21,6 @@ enum PKEY {
 
 // UI
 static Window* main_window;
-static Window* menu_window;
 
 static TextLayer* text_layer_life_opponent;
 static TextLayer* text_layer_life_player;
@@ -151,8 +150,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void* context) {
 }
 
 static void select_long_click_handler(ClickRecognizerRef recognizer, void* context) {
-  // show menu
-  window_stack_push(menu_window, true);
+  show_menu();
 }
 
 static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
@@ -190,8 +188,7 @@ static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void menu_select_game_reset_callback(int index, void *ctx) {
   reset_match_state();
-  // hide menu
-  window_stack_pop(true);
+  hide_menu();
 }
 
 
@@ -255,31 +252,22 @@ static void main_window_unload(Window* window) {
   gbitmap_destroy(action_icon_toggle);
 }
 
-static void menu_window_load(Window* window) {
-  Layer* window_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_bounds(window_layer);
 
-  SimpleMenuLayer* menu_layer = init_menu(bounds, window, (MTGCounterMenuSelectionCallbacks) {
+static void init(void) {
+  // restore state
+  read_state();
+
+  // register menu callbacks
+  set_menu_callbacks((MTGCounterMenuSelectionCallbacks) {
     .game_reset = menu_select_game_reset_callback,
   });
 
-  layer_add_child(window_layer, simple_menu_layer_get_layer(menu_layer));
-}
-
-static void init(void) {
-  read_state();
-
+  // init main window
   main_window = window_create();
   window_set_window_handlers(main_window, (WindowHandlers) {
     .load = main_window_load,
     .unload = main_window_unload,
   });
-
-  menu_window = window_create();
-  window_set_window_handlers(menu_window, (WindowHandlers) {
-    .load = menu_window_load,
-  });
-
   window_stack_push(main_window, true /*animated*/);
 
   // register callback for match timer
@@ -289,8 +277,10 @@ static void init(void) {
 static void deinit(void) {
   safe_state();
 
+  destroy_menu();
+  destroy_decision_screen();
+
   window_destroy(main_window);
-  window_destroy(menu_window);
 }
 
 int main(void) {

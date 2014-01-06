@@ -93,3 +93,7 @@ void show_decision_screen(char* text, DecisionScreenCallback confirm, DecisionSc
 
   window_stack_push(window, true);
 }
+
+void destroy_decision_screen() {
+  if (window != NULL) window_destroy(window);
+}

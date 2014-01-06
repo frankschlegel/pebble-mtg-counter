@@ -15,6 +15,8 @@ enum MTGCounterMenuSections {
   MTGCounterMenuSectionsCount
 };
 
+static Window* window;
+
 static SimpleMenuLayer* menu_layer = NULL;
 
 static MTGCounterMenuSelectionCallbacks selection_callbacks;
@@ -23,15 +25,14 @@ static SimpleMenuSection menu_sections[MTGCounterMenuSectionsCount];
 static SimpleMenuItem game_section_items[MTGCounterMenuGameSectionItemsCount];
 
 
-static void init_game_section_items(void) {
+static void init_game_section_items() {
   game_section_items[MTGCounterMenuGameSectionItemReset] = (SimpleMenuItem){
     .title = "Reset",
     .callback= selection_callbacks.game_reset,
   };
 }
 
-
-static void init_sections(void) {
+static void init_sections() {
   init_game_section_items();
 
   menu_sections[MTGCounterMenuSectionGame] = (SimpleMenuSection){
@@ -41,19 +42,43 @@ static void init_sections(void) {
 }
 
 
-SimpleMenuLayer* init_menu(GRect bounds, Window* window, MTGCounterMenuSelectionCallbacks callbacks) {
-  // check if already initialized
-  if (menu_layer == NULL) {
-    selection_callbacks = callbacks;
-    init_sections();
+static void window_load(Window* window) {
+  init_sections();
 
-    menu_layer = simple_menu_layer_create(bounds, window, menu_sections, MTGCounterMenuSectionsCount, NULL);
-  }
+  Layer* window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_bounds(window_layer);
 
-  return menu_layer;
+  menu_layer = simple_menu_layer_create(bounds, window, menu_sections, MTGCounterMenuSectionsCount, NULL);
+  layer_add_child(window_layer, simple_menu_layer_get_layer(menu_layer));
 }
 
-void destroy_menu(void) {
-  if (menu_layer != NULL) simple_menu_layer_destroy(menu_layer);
-  menu_layer = NULL;
+static void window_unload(Window* window) {
+  simple_menu_layer_destroy(menu_layer);
+}
+
+
+void set_menu_callbacks(MTGCounterMenuSelectionCallbacks callbacks) {
+  selection_callbacks = callbacks;
+}
+
+void show_menu() {
+  if (window == NULL) {
+    window = window_create();
+    window_set_window_handlers(window, (WindowHandlers) {
+      .load = window_load,
+      .unload = window_unload,
+    });
+  }
+
+  window_stack_push(window, true);
+}
+
+void hide_menu() {
+  if (window_stack_get_top_window() == window) {
+    window_stack_pop(true);
+  }
+}
+
+void destroy_menu() {
+  if (window != NULL) window_destroy(window);
 }
