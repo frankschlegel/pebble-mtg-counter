@@ -27,6 +27,16 @@
         "type": "png",
         "name": "IMAGE_ACTION_ICON_TOGGLE",
         "file": "images/action_icon_toggle.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_ACTION_ICON_CONFIRM",
+        "file": "images/action_icon_confirm.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_ACTION_ICON_CANCEL",
+        "file": "images/action_icon_cancel.png"
       }
     ]
   }
