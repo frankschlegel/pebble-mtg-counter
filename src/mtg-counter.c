@@ -4,8 +4,11 @@
 
 
 #define LIFE_DEFAULT 20
+#define LIFE_MAX 999
+#define LIFE_MIN -999
 #define LIFE_STEP_DEFAULT -1
 #define GAMES_WON_DEFAULT 0
+#define GAMES_WON_MAX 99
 #define REPEATING_CLICK_INTERVAL 500
 
 
@@ -127,13 +130,13 @@ static void reset_match_state() {
 }
 
 static void opponent_wins() {
-  ++games_won_opponent;
+  games_won_opponent = (games_won_opponent == GAMES_WON_MAX) ? GAMES_WON_MAX : games_won_opponent + 1;
   update_games_won_counter_opponent();
   reset_game_state();
 }
 
 static void player_wins() {
-  ++games_won_player;
+  games_won_player = (games_won_player == GAMES_WON_MAX) ? GAMES_WON_MAX : games_won_player + 1;
   update_games_won_counter_player();
   reset_game_state();
 }
@@ -154,8 +157,11 @@ static void select_long_click_handler(ClickRecognizerRef recognizer, void* conte
 }
 
 static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
-  //TODO: cap
   life_opponent += life_step;
+  // cap
+  if (life_opponent > LIFE_MAX) life_opponent = LIFE_MAX;
+  if (life_opponent < LIFE_MIN) life_opponent = LIFE_MIN;
+
   update_opponent_life_counter();
   if (life_opponent == 0 && !game_continues_on_purpose)
   {
@@ -164,8 +170,11 @@ static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* cont
 }
 
 static void down_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
-  //TODO: cap
   life_player += life_step;
+  // cap
+  if (life_player > LIFE_MAX) life_player = LIFE_MAX;
+  if (life_player < LIFE_MIN) life_player = LIFE_MIN;
+  
   update_player_life_counter();
   if (life_player == 0 && !game_continues_on_purpose)
   {
