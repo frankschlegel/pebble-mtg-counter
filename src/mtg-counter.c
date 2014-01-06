@@ -191,6 +191,16 @@ static void menu_select_game_reset_callback(int index, void *ctx) {
   hide_menu();
 }
 
+static void menu_select_opponent_wins_callback(int index, void *ctx) {
+  opponent_wins();
+  hide_menu();
+}
+
+static void menu_select_player_wins_callback(int index, void *ctx) {
+  player_wins();
+  hide_menu();
+}
+
 
 static void main_window_load(Window* window) {
   Layer* window_layer = window_get_root_layer(window);
@@ -260,6 +270,8 @@ static void init(void) {
   // register menu callbacks
   set_menu_callbacks((MTGCounterMenuSelectionCallbacks) {
     .game_reset = menu_select_game_reset_callback,
+    .opponent_wins = menu_select_opponent_wins_callback,
+    .player_wins = menu_select_player_wins_callback,
   });
 
   // init main window
