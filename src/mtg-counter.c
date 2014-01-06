@@ -117,7 +117,6 @@ static void reset_game_state() {
   game_continues_on_purpose = false;
   update_opponent_life_counter();
   update_player_life_counter();
-  update_match_timer();
 }
 
 static void reset_match_state() {
@@ -127,6 +126,7 @@ static void reset_match_state() {
   match_start_time = time(NULL);
   update_games_won_counter_opponent();
   update_games_won_counter_player();
+  update_match_timer();
 }
 
 static void opponent_wins() {
