@@ -6,6 +6,7 @@
 enum MTGCounterMenuGameSectionItems {
   MTGCounterMenuGameSectionItemPlayerWins,
   MTGCounterMenuGameSectionItemOpponentWins,
+  MTGCounterMenuGameSectionItemDraw,
   MTGCounterMenuGameSectionItemReset,
 
   MTGCounterMenuGameSectionItemsCount
@@ -35,6 +36,10 @@ static void init_game_section_items() {
   game_section_items[MTGCounterMenuGameSectionItemOpponentWins] = (SimpleMenuItem){
     .title = "I lost the game",
     .callback= selection_callbacks.opponent_wins,
+  };
+  game_section_items[MTGCounterMenuGameSectionItemDraw] = (SimpleMenuItem){
+    .title = "Draw game",
+    .callback= selection_callbacks.draw,
   };
   game_section_items[MTGCounterMenuGameSectionItemReset] = (SimpleMenuItem){
     .title = "Next match",

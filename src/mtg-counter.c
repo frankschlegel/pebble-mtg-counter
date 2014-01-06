@@ -7,8 +7,8 @@
 #define LIFE_MAX 999
 #define LIFE_MIN -999
 #define LIFE_STEP_DEFAULT -1
-#define GAMES_WON_DEFAULT 0
-#define GAMES_WON_MAX 99
+#define GAMES_SCORE_DEFAULT 0
+#define GAMES_SCORE_MAX 99
 #define REPEATING_CLICK_INTERVAL 500
 
 
@@ -17,6 +17,7 @@ enum PKEY {
   LIFE_PLAYER_PKEY,
   GAMES_WON_OPPONENT_PKEY,
   GAMES_WON_PLAYER_PKEY,
+  GAMES_DRAW_PKEY,
   LIFE_STEP_PKEY,
   GAME_CONTINUES_ON_PURPOSE_PKEY,
   MATCH_START_TIME_PKEY,
@@ -29,6 +30,7 @@ static TextLayer* text_layer_life_opponent;
 static TextLayer* text_layer_life_player;
 static TextLayer* text_layer_games_won_opponent;
 static TextLayer* text_layer_games_won_player;
+static TextLayer* text_layer_games_draw;
 static TextLayer* text_layer_match_timer;
 
 static ActionBarLayer* action_bar_layer;
@@ -39,8 +41,9 @@ static GBitmap* action_icon_toggle;
 // state
 static int life_opponent = LIFE_DEFAULT;
 static int life_player = LIFE_DEFAULT;
-static uint8_t games_won_opponent = GAMES_WON_DEFAULT;
-static uint8_t games_won_player = GAMES_WON_DEFAULT;
+static uint8_t games_won_opponent = GAMES_SCORE_DEFAULT;
+static uint8_t games_won_player = GAMES_SCORE_DEFAULT;
+static uint8_t games_draw = GAMES_SCORE_DEFAULT;
 static short life_step = LIFE_STEP_DEFAULT;
 
 static bool game_continues_on_purpose; // the player decided not to quit the current game after life reached 0
@@ -51,8 +54,9 @@ static time_t match_start_time;
 static void read_state() {
   life_opponent      = persist_exists(LIFE_OPPONENT_PKEY)      ? persist_read_int(LIFE_OPPONENT_PKEY)      : LIFE_DEFAULT;
   life_player        = persist_exists(LIFE_PLAYER_PKEY)        ? persist_read_int(LIFE_PLAYER_PKEY)        : LIFE_DEFAULT;
-  games_won_opponent = persist_exists(GAMES_WON_OPPONENT_PKEY) ? persist_read_int(GAMES_WON_OPPONENT_PKEY) : GAMES_WON_DEFAULT;
-  games_won_player   = persist_exists(GAMES_WON_PLAYER_PKEY)   ? persist_read_int(GAMES_WON_PLAYER_PKEY)   : GAMES_WON_DEFAULT;
+  games_won_opponent = persist_exists(GAMES_WON_OPPONENT_PKEY) ? persist_read_int(GAMES_WON_OPPONENT_PKEY) : GAMES_SCORE_DEFAULT;
+  games_won_player   = persist_exists(GAMES_WON_PLAYER_PKEY)   ? persist_read_int(GAMES_WON_PLAYER_PKEY)   : GAMES_SCORE_DEFAULT;
+  games_draw         = persist_exists(GAMES_DRAW_PKEY)         ? persist_read_int(GAMES_DRAW_PKEY)         : GAMES_SCORE_DEFAULT;
   life_step          = persist_exists(LIFE_STEP_PKEY)          ? persist_read_int(LIFE_STEP_PKEY)          : LIFE_STEP_DEFAULT;
 
   game_continues_on_purpose = persist_exists(GAME_CONTINUES_ON_PURPOSE_PKEY) ? persist_read_bool(GAME_CONTINUES_ON_PURPOSE_PKEY) : false;
@@ -65,6 +69,7 @@ static void safe_state() {
   persist_write_int(LIFE_PLAYER_PKEY,        life_player);
   persist_write_int(GAMES_WON_OPPONENT_PKEY, games_won_opponent);
   persist_write_int(GAMES_WON_PLAYER_PKEY,   games_won_player);
+  persist_write_int(GAMES_DRAW_PKEY,         games_draw);
   persist_write_int(LIFE_STEP_PKEY,          life_step);
 
   persist_write_bool(GAME_CONTINUES_ON_PURPOSE_PKEY, game_continues_on_purpose);
@@ -96,6 +101,12 @@ static void update_games_won_counter_player() {
   text_layer_set_text(text_layer_games_won_player, text);
 }
 
+static void update_games_draw_counter() {
+  static char text[2];
+  snprintf(text, sizeof(text), "%d", games_draw);
+  text_layer_set_text(text_layer_games_draw, text);
+}
+
 static void update_action_bar() {
   GBitmap* icon = life_step < 0 ? action_icon_minus : action_icon_plus;
 
@@ -121,8 +132,8 @@ static void reset_game_state() {
 
 static void reset_match_state() {
   reset_game_state();
-  games_won_opponent = GAMES_WON_DEFAULT;
-  games_won_player = GAMES_WON_DEFAULT;
+  games_won_opponent = GAMES_SCORE_DEFAULT;
+  games_won_player = GAMES_SCORE_DEFAULT;
   match_start_time = time(NULL);
   update_games_won_counter_opponent();
   update_games_won_counter_player();
@@ -130,14 +141,23 @@ static void reset_match_state() {
 }
 
 static void opponent_wins() {
-  games_won_opponent = (games_won_opponent == GAMES_WON_MAX) ? GAMES_WON_MAX : games_won_opponent + 1;
+  // cap
+  games_won_opponent = (games_won_opponent == GAMES_SCORE_MAX) ? GAMES_SCORE_MAX : games_won_opponent + 1;
   update_games_won_counter_opponent();
   reset_game_state();
 }
 
 static void player_wins() {
-  games_won_player = (games_won_player == GAMES_WON_MAX) ? GAMES_WON_MAX : games_won_player + 1;
+  // cap
+  games_won_player = (games_won_player == GAMES_SCORE_MAX) ? GAMES_SCORE_MAX : games_won_player + 1;
   update_games_won_counter_player();
+  reset_game_state();
+}
+
+static void draw() {
+  // cap
+  games_draw = (games_draw == GAMES_SCORE_MAX) ? GAMES_SCORE_MAX : games_draw + 1;
+  update_games_draw_counter();
   reset_game_state();
 }
 
@@ -174,7 +194,7 @@ static void down_repeating_click_handler(ClickRecognizerRef recognizer, void* co
   // cap
   if (life_player > LIFE_MAX) life_player = LIFE_MAX;
   if (life_player < LIFE_MIN) life_player = LIFE_MIN;
-  
+
   update_player_life_counter();
   if (life_player == 0 && !game_continues_on_purpose)
   {
@@ -210,6 +230,11 @@ static void menu_select_player_wins_callback(int index, void *ctx) {
   hide_menu();
 }
 
+static void menu_select_draw_callback(int index, void *ctx) {
+  draw();
+  hide_menu();
+}
+
 
 static void main_window_load(Window* window) {
   Layer* window_layer = window_get_root_layer(window);
@@ -240,23 +265,29 @@ static void main_window_load(Window* window) {
   update_player_life_counter();
   layer_add_child(window_layer, text_layer_get_layer(text_layer_life_player));
 
+  text_layer_match_timer = text_layer_create((GRect) { .origin = { 0, 60 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 30 } });
+  text_layer_set_text_alignment(text_layer_match_timer, GTextAlignmentCenter);
+  text_layer_set_font(text_layer_match_timer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  update_match_timer();
+  layer_add_child(window_layer, text_layer_get_layer(text_layer_match_timer));
+
   text_layer_games_won_opponent = text_layer_create((GRect) { .origin = { 5, 40 }, .size = { 20, 20 } });
   text_layer_set_text_alignment(text_layer_games_won_opponent, GTextAlignmentCenter);
   text_layer_set_font(text_layer_games_won_opponent, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   update_games_won_counter_opponent();
   layer_add_child(window_layer, text_layer_get_layer(text_layer_games_won_opponent));
 
-  text_layer_games_won_player = text_layer_create((GRect) { .origin = { 5, 120 }, .size = { 20, 20 } });
+  text_layer_games_won_player = text_layer_create((GRect) { .origin = { 5, 100 }, .size = { 20, 20 } });
   text_layer_set_text_alignment(text_layer_games_won_player, GTextAlignmentCenter);
   text_layer_set_font(text_layer_games_won_player, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
   update_games_won_counter_player();
   layer_add_child(window_layer, text_layer_get_layer(text_layer_games_won_player));
 
-  text_layer_match_timer = text_layer_create((GRect) { .origin = { 0, 60 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 30 } });
-  text_layer_set_text_alignment(text_layer_match_timer, GTextAlignmentCenter);
-  text_layer_set_font(text_layer_match_timer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
-  update_match_timer();
-  layer_add_child(window_layer, text_layer_get_layer(text_layer_match_timer));
+  text_layer_games_draw = text_layer_create((GRect) { .origin = { 5, 70 }, .size = { 20, 20 } });
+  text_layer_set_text_alignment(text_layer_games_draw, GTextAlignmentCenter);
+  text_layer_set_font(text_layer_games_draw, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  update_games_draw_counter();
+  layer_add_child(window_layer, text_layer_get_layer(text_layer_games_draw));
 }
 
 static void main_window_unload(Window* window) {
@@ -281,6 +312,7 @@ static void init(void) {
     .game_reset = menu_select_game_reset_callback,
     .opponent_wins = menu_select_opponent_wins_callback,
     .player_wins = menu_select_player_wins_callback,
+    .draw = menu_select_draw_callback,
   });
 
   // init main window
