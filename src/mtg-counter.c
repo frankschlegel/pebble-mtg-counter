@@ -111,7 +111,6 @@ static void update_match_timer() {
 static void reset_game_state() {
   life_opponent = LIFE_DEFAULT;
   life_player = LIFE_DEFAULT;
-  match_start_time = time(NULL);
   game_continues_on_purpose = false;
   update_opponent_life_counter();
   update_player_life_counter();
@@ -122,6 +121,7 @@ static void reset_match_state() {
   reset_game_state();
   games_won_opponent = GAMES_WON_DEFAULT;
   games_won_player = GAMES_WON_DEFAULT;
+  match_start_time = time(NULL);
   update_games_won_counter_opponent();
   update_games_won_counter_player();
 }
