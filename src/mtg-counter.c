@@ -36,7 +36,7 @@ static TextLayer* text_layer_games_draw;
 static TextLayer* text_layer_match_timer;
 
 static ScoreLayer* score_layer_life_opponent;
-// static ScoreLayer* score_layer_life_player;
+static ScoreLayer* score_layer_life_player;
 
 static ActionBarLayer* action_bar_layer;
 static GBitmap* action_icon_plus;
@@ -83,16 +83,11 @@ static void safe_state() {
 }
 
 static void update_opponent_life_counter() {
-  // static char text[5];
-  // snprintf(text, sizeof(text), "%d", life_opponent);
-  // text_layer_set_text(text_layer_life_opponent, text);
   score_layer_set_score(score_layer_life_opponent, life_opponent);
 }
 
 static void update_player_life_counter() {
-  static char text[5];
-  snprintf(text, sizeof(text), "%d", life_player);
-  text_layer_set_text(text_layer_life_player, text);
+  score_layer_set_score(score_layer_life_player, life_player);
 }
 
 static void update_games_won_counter_opponent() {
@@ -259,21 +254,13 @@ static void main_window_load(Window* window) {
   // set the click config provider
   action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
 
-  // text_layer_life_opponent = text_layer_create((GRect) { .origin = { 0, 0 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } });
-  // text_layer_set_text_alignment(text_layer_life_opponent, GTextAlignmentCenter);
-  // text_layer_set_font(text_layer_life_opponent, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
-  // update_opponent_life_counter();
-  // layer_add_child(window_layer, text_layer_get_layer(text_layer_life_opponent));
-
-  score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 20 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } }, 5);
+  score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 20 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 40 } }, 5);
   update_opponent_life_counter();
   layer_add_child(window_layer, score_layer_get_layer(score_layer_life_opponent));
 
-  text_layer_life_player = text_layer_create((GRect) { .origin = { 0, 80 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } });
-  text_layer_set_text_alignment(text_layer_life_player, GTextAlignmentCenter);
-  text_layer_set_font(text_layer_life_player, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
+  score_layer_life_player = score_layer_create((GRect) { .origin = { 0, 100 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 40 } }, 5);
   update_player_life_counter();
-  layer_add_child(window_layer, text_layer_get_layer(text_layer_life_player));
+  layer_add_child(window_layer, score_layer_get_layer(score_layer_life_player));
 
   text_layer_match_timer = text_layer_create((GRect) { .origin = { 0, 60 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 30 } });
   text_layer_set_text_alignment(text_layer_match_timer, GTextAlignmentCenter);

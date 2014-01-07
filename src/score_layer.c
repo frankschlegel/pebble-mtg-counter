@@ -18,29 +18,29 @@ struct ScoreLayer {
 
 
 static void load_resources() {
-  digit_bitmaps[0] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[1] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
+  digit_bitmaps[0] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_0);
+  digit_bitmaps[1] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_1);
   digit_bitmaps[2] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[3] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[4] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[5] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[6] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[7] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[8] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[9] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
-  digit_bitmaps[10] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2);
+  digit_bitmaps[3] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_3);
+  digit_bitmaps[4] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_4);
+  digit_bitmaps[5] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_5);
+  digit_bitmaps[6] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_6);
+  digit_bitmaps[7] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_7);
+  digit_bitmaps[8] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_8);
+  digit_bitmaps[9] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_9);
+  digit_bitmaps[10] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MINUS_SIGN);
 
-  rotated_digit_bitmaps[0] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[1] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
+  rotated_digit_bitmaps[0] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_0_ROTATED);
+  rotated_digit_bitmaps[1] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_1_ROTATED);
   rotated_digit_bitmaps[2] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[3] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[4] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[5] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[6] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[7] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[8] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[9] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
-  rotated_digit_bitmaps[10] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_2_ROTATED);
+  rotated_digit_bitmaps[3] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_3_ROTATED);
+  rotated_digit_bitmaps[4] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_4_ROTATED);
+  rotated_digit_bitmaps[5] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_5_ROTATED);
+  rotated_digit_bitmaps[6] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_6_ROTATED);
+  rotated_digit_bitmaps[7] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_7_ROTATED);
+  rotated_digit_bitmaps[8] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_8_ROTATED);
+  rotated_digit_bitmaps[9] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_DIGIT_9_ROTATED);
+  rotated_digit_bitmaps[10] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MINUS_SIGN_ROTATED);
 }
 
 
@@ -62,6 +62,9 @@ static void score_layer_update(ScoreLayer* score_layer) {
   uint8_t num_digits_needed = 0;
   int score = score_layer->score;
 
+  // calculate digits for positive score and add minus sign later
+  if (score < 0) score = -score;
+
   // collect the single digits in score
   do {
     digits[num_digits_needed++] = score % 10;
@@ -79,32 +82,46 @@ static void score_layer_update(ScoreLayer* score_layer) {
   score_layer_clear(score_layer);
 
   // create and layout the digit layers dependent on the orientation
+  // 1. iteration: create bitmap layers and determine required size
+  uint32_t digits_width = 0;
   for (uint8_t i = 0; i < num_digits_needed; ++i)
   {
     // pick the right bitmap for the current orientation
     GBitmap* digit_bitmap = score_layer->orientation == ScoreLayerOrientationNormal ?
                             digit_bitmaps[digits[i]] : rotated_digit_bitmaps[digits[i]];
+
     GRect bitmap_bounds = digit_bitmap->bounds;
+    digits_width += bitmap_bounds.size.w;
+
     BitmapLayer* digit_layer = bitmap_layer_create(bitmap_bounds);
     bitmap_layer_set_bitmap(digit_layer, digit_bitmap);
     
-    // place according to index in background layer
-    GRect background_layer_frame = layer_get_frame(score_layer->background_layer);
-    int margin = (background_layer_frame.size.w - num_digits_needed * bitmap_bounds.size.w) / 2;
-    if (margin < 0) margin = 0; // digits will not fit into layer...
-    // reverse direction for normal orientation since digits are reversed in digits array
-    int index = score_layer->orientation == ScoreLayerOrientationNormal ? (num_digits_needed - 1) - i : i;
-    bitmap_bounds.origin = (GPoint) {
-      .x = margin + index * bitmap_bounds.size.w,
-      .y = 0,
-    };
-    layer_set_frame((Layer*) digit_layer, bitmap_bounds);
-
-    // add to background layer
-    layer_add_child(score_layer->background_layer, (Layer*) digit_layer);
-
     // remember for later
     score_layer->digit_layers[i] = digit_layer;
+  }
+
+  GRect background_layer_frame = layer_get_frame(score_layer->background_layer);
+  int margin = (background_layer_frame.size.w - digits_width) / 2;
+  if (margin < 0) margin = 0; // digits will not fit into layer...
+
+  // 2. iteration: place according to index, orientation and size in background layer
+  uint32_t current_x = 0;
+  for (uint8_t i = 0; i < num_digits_needed; ++i) {
+    // reverse direction for normal orientation since digits are reversed in digits array
+    int index = score_layer->orientation == ScoreLayerOrientationNormal ? (num_digits_needed - 1) - i : i;
+    BitmapLayer* layer = score_layer->digit_layers[index];
+
+    GRect frame = layer_get_frame((Layer*) layer);
+    frame.origin = (GPoint) {
+      .x = margin + current_x,
+      .y = 0,
+    };
+    layer_set_frame((Layer*) layer, frame);
+
+    current_x += frame.size.w;
+
+    // add to background layer
+    layer_add_child(score_layer->background_layer, (Layer*) layer);
   }
 
   free(digits);
