@@ -265,7 +265,7 @@ static void main_window_load(Window* window) {
   // update_opponent_life_counter();
   // layer_add_child(window_layer, text_layer_get_layer(text_layer_life_opponent));
 
-  score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 0 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } }, 5);
+  score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 20 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } }, 5);
   update_opponent_life_counter();
   layer_add_child(window_layer, score_layer_get_layer(score_layer_life_opponent));
 

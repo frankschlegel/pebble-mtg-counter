@@ -42,6 +42,11 @@
         "type": "png",
         "name": "IMAGE_DIGIT_2",
         "file": "images/digit_2.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_DIGIT_2_ROTATED",
+        "file": "images/digit_2_rotated.png"
       }
     ]
   }
