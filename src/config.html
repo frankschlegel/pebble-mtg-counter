@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+Original from Original from https://github.com/bertfreudenberg/PebbleONE.
+Modified for magic-mtg-counter.
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <style>
+    body {
+        background-color: #777777;
+        font-family: sans-serif;
+    }
+    div,form {
+        width: 280px;
+        text-shadow: 0px 1px 1px white;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #333333;
+        border-radius: 10px;
+        background: #eeeeee;
+        text-shadow:1px 1px 1px #ffffff;
+    }
+    div.header {color: #666666; text-align: center; font-weight:bold; font-size:24px;}
+    p,a {color: #cccccc}
+    hr {clear: both; margin: 5px 0}
+    input {
+        display:none; 
+        margin:10px;
+    }
+    input + label {
+        display:inline-block;
+        box-shadow: inset 0px 1px 0px 0px #ffffff;
+        background: #eeeeee;
+        background-image: linear-gradient(#eeeeee, #dddddd);
+        text-indent:0;
+        border:1px solid #cccccc;
+        display:inline-block;
+        color:#777777;
+        font-size:16px;
+        font-weight:bold;
+        text-align:center;
+        text-shadow:1px 1px 1px #ffffff;
+        margin: 2px 0 2px 0;
+        padding: 10px 0;
+    }
+    input[type=submit] + label {
+        padding: 10px 0;
+        width: 280px;
+        font-size: 32px;
+        border-radius: 20px;
+    }
+    input[type=radio]:checked + label, input[type=submit] + label { 
+        background: #5cb811;
+        background-image: linear-gradient(#5cb811, #77d42a);
+        box-shadow: inset 0px -1px 2px #ffffff;
+        color: #FFFFFF;
+        text-shadow: 1px 1px 1px #339933;
+    }
+    .left { border-radius: 10px 0 0 10px; width: 55px }
+    .right { border-radius: 0 10px 10px 0; width: 55px }
+    .middle {width: 160px }
+    .float {float: right; width: 70px}
+    </style>
+</head>
+<body>
+    <div class="header">ONE</div>
+    <form id="form" onsubmit="return onSubmit(this)">
+        Seconds hand:
+        <br>
+        <input
+            type="radio" id="seconds0" name="seconds_mode" value="0"><label for="seconds0" class="left">Off</label><input 
+            type="radio" id="seconds1" name="seconds_mode" value="1"><label for="seconds1" class="middle">Off if low battery</label><input
+            type="radio" id="seconds2" name="seconds_mode" value="2"><label for="seconds2" class="right">On</label>
+        <hr>
+        Battery indicator:
+        <br>
+        <input
+            type="radio" id="battery0" name="battery_mode" value="0"><label for="battery0" class="left">Off</label><input 
+            type="radio" id="battery1" name="battery_mode" value="1"><label for="battery1" class="middle">If battery is low</label><input
+            type="radio" id="battery2" name="battery_mode" value="2"><label for="battery2" class="right">On</label>
+        <hr>
+        Bluetooth indicator:
+        <br>
+        <input
+            type="radio" id="bluetooth0" name="bluetooth_mode" value="0"><label for="bluetooth0" class="left">Off</label><input 
+            type="radio" id="bluetooth1" name="bluetooth_mode" value="1"><label for="bluetooth1" class="middle">If disconnected</label><input
+            type="radio" id="bluetooth2" name="bluetooth_mode" value="2"><label for="bluetooth2" class="right">On</label>
+        <hr>
+        <input
+            type="radio" id="date1" name="date_mode" value="1"><label for="date1" class="right float">Show</label><input 
+            type="radio" id="date0" name="date_mode" value="0"><label for="date0" class="left float">Hide</label>
+        Week day<br>and date:
+        <hr>
+        <input
+            type="radio" id="graphics1" name="graphics_mode" value="1"><label for="graphics1" class="right float">White</label><input 
+            type="radio" id="graphics0" name="graphics_mode" value="0"><label for="graphics0" class="left float">Black</label>
+        Color<br>scheme:
+        <hr>
+        <input
+            type="radio" id="connlost1" name="connlost_mode" value="1"><label for="connlost1" class="right float">Buzz</label><input 
+            type="radio" id="connlost0" name="connlost_mode" value="0"><label for="connlost0" class="left float">Ignore</label>
+        If lost phone<br>connection:
+        <hr>
+        <input type="submit" id="save" value="Save"><label for="save">Save</label>
+    </form>
+    <script>
+        /* (Comments are multi-line comments spanning single lines only */
+        /*  by intention: the build process appends this file as JavaScript */
+        /*  string to mtg-counter.js. Other types of comments would destroy */
+        /*  the string and therefore the remaining JavaScript and HTML */
+        /*  in this file as well. (See /wscript) */
+
+        /* The keyword below will be replaced at runtime (incl. quotes). */
+        /* See the showConfiguration event listener in mtg-counter.js. */
+        var config = JSON.parse('"CONFIG_JSON_REPLACED_AT_RUNTIME"');
+        for (var which in config) {
+            if (form[which]) for (var i = 0; i < form[which].length; i++) {
+                var radio = form[which][i];
+                radio.checked = radio.value == config[which];
+            }
+        }
+        function onSubmit(e) {
+            var result = {};
+            var inputs = form.getElementsByTagName("input");
+            for (var i = 0; i < inputs.length; i++)
+                if (inputs[i].checked)
+                    result[inputs[i].name] = parseInt(inputs[i].value);
+            window.location.href = "pebblejs://close#" + JSON.stringify(result);
+            return false;
+        }
+    </script>
+</body>
+</html>
