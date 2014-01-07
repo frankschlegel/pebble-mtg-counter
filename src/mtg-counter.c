@@ -12,6 +12,9 @@
 #define GAMES_SCORE_DEFAULT 0
 #define GAMES_SCORE_MAX 99
 #define REPEATING_CLICK_INTERVAL 500
+#define ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL 500
+#define Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN 600
+#define Y_THRESHOLD_ORIENTATION_NORMAL 500
 
 
 enum PKEY {
@@ -24,6 +27,9 @@ enum PKEY {
   GAME_CONTINUES_ON_PURPOSE_PKEY,
   MATCH_START_TIME_PKEY,
 };
+
+// timer
+static AppTimer* timer_orientation_check;
 
 // UI
 static Window* main_window;
@@ -216,6 +222,25 @@ static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 
+static void check_orientation(void *data) {
+  AccelData accel_data = (AccelData) { .x = 0, .y = 0, .z = 0 };
+  accel_service_peek(&accel_data);
+
+  ScoreLayerOrientation current_orientation = score_layer_get_orientation(score_layer_life_opponent);
+
+  if (current_orientation == ScoreLayerOrientationNormal && accel_data.y > Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN) {
+    score_layer_set_orientation(score_layer_life_opponent, ScoreLayerOrientationUpsideDown);
+    score_layer_set_orientation(score_layer_life_player, ScoreLayerOrientationUpsideDown);
+  } else if (current_orientation == ScoreLayerOrientationUpsideDown && accel_data.y < Y_THRESHOLD_ORIENTATION_NORMAL) {
+    score_layer_set_orientation(score_layer_life_opponent, ScoreLayerOrientationNormal);
+    score_layer_set_orientation(score_layer_life_player, ScoreLayerOrientationNormal);
+  }
+
+  // restart timer
+  timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
+}
+
+
 static void menu_select_game_reset_callback(int index, void *ctx) {
   reset_match_state();
   hide_menu();
@@ -322,10 +347,16 @@ static void init(void) {
 
   // register callback for match timer
   tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
+
+  // subscribe to accelerometer updates
+  accel_data_service_subscribe(0, NULL);
+  timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
 }
 
 static void deinit(void) {
   safe_state();
+
+  accel_data_service_unsubscribe();
 
   destroy_menu();
   destroy_decision_screen();
