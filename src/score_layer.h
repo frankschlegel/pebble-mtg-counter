@@ -23,3 +23,5 @@ ScoreLayerOrientation score_layer_get_orientation(ScoreLayer* score_layer);
 void score_layer_set_orientation(ScoreLayer* score_layer, ScoreLayerOrientation orientation);
 ScoreLayerOrientation score_layer_get_orientation_all();
 void score_layer_set_orientation_all(ScoreLayerOrientation orientation);
+
+void score_layer_set_corner_mask(ScoreLayer* score_layer, GCornerMask corner_mask);
