@@ -12,23 +12,24 @@ Modified for magic-mtg-counter.
         padding: 0;
     }
     body {
-        background-color: #777777;
+        background-color: #18384f;
         font-family: sans-serif;
         margin: 8px;
     }
     form table {
         width: 100%;
-        text-shadow: 0px 1px 1px white;
         padding: 5px 10px;
         margin-bottom: 8px;
-        border: 1px solid #333333;
+        border: 1px solid #050c12;
         border-radius: 10px;
-        background: #eeeeee;
-        text-shadow:1px 1px 1px #ffffff;
+        background-color: #EBEBEB;
+        color: #050c12;
+        text-shadow: 0px 1px 1px #ffffff;
         border-spacing: 0;
     }
     form th {
-        color: #666666;
+        color: #D33B00;
+        text-shadow: 0px 1px 1px #FFF1ED;
         text-align: center;
         font-weight: bold;
         font-size: 24px;
@@ -40,7 +41,7 @@ Modified for magic-mtg-counter.
     form td:first-child { text-align: right; }
     form td:last-child { white-space:nowrap; }
     form td {
-        border-top: 1px solid #333333;
+        border-top: 1px solid #18384f;
         padding: 5px;
         vertical-align: middle;
     }
@@ -54,16 +55,16 @@ Modified for magic-mtg-counter.
     input + label, select {
         display:inline-block;
         box-shadow: inset 0px 1px 0px 0px #ffffff;
-        background: #eeeeee;
-        background-image: linear-gradient(#eeeeee, #dddddd);
+        background: #d6d2cb;
+        background-image: linear-gradient(#eee, #d6d2cb);
         text-indent:0;
-        border:1px solid #cccccc;
+        border:1px solid #ccc;
         display:inline-block;
-        color:#777777;
+        color:#477093;
         font-size:16px;
         font-weight:bold;
         text-align:center;
-        text-shadow:1px 1px 1px #ffffff;
+        text-shadow: 0px -1px 1px #ffffff;
     }
     input + label {
         margin: 2px 0 2px 0;
@@ -81,12 +82,20 @@ Modified for magic-mtg-counter.
         font-size: 32px;
         border-radius: 10px;
     }
-    input[type=radio]:checked + label, input[type=submit] + label { 
-        background: #5cb811;
-        background-image: linear-gradient(#5cb811, #77d42a);
-        box-shadow: inset 0px -1px 2px #ffffff;
-        color: #FFFFFF;
-        text-shadow: 1px 1px 1px #339933;
+    input[type=radio]:checked + label { 
+        background: #e25107;
+        background-image: linear-gradient(#e25107, #fe8d06);
+        box-shadow: inset 0px -1px 1px #FFDAAE;
+        color: #ffffff;
+        text-shadow: 0px -1px 1px #992d1d;
+    }
+    input[type=submit] + label { 
+        background: #e25107;
+        background-image: linear-gradient(#fe8d06, #e25107);
+        box-shadow: inset 0px 1px 1px #721417;
+        color: #ffffff;
+        text-shadow: 0px -1px 2px #992d1d;
+        border-color: #0D1F2C;
     }
     label.toggle-left {
         border-radius: 10px 0 0 10px;
