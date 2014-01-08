@@ -21,6 +21,21 @@
       },
       {
         "type": "png",
+        "name": "IMAGE_MENU_ICON_WIN",
+        "file": "images/menu_icon_win.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_MENU_ICON_LOSE",
+        "file": "images/menu_icon_lose.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_MENU_ICON_DRAW",
+        "file": "images/menu_icon_draw.png"
+      },
+      {
+        "type": "png",
         "name": "IMAGE_STATUS_BAR_ICON",
         "file": "images/status_bar_icon.png"
       },
