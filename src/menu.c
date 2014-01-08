@@ -30,19 +30,24 @@ static SimpleMenuItem game_section_items[MTGCounterMenuGameSectionItemsCount];
 
 static void init_game_section_items() {
   game_section_items[MTGCounterMenuGameSectionItemPlayerWins] = (SimpleMenuItem){
-    .title = "I won the game",
+    .title = "I won",
+    .icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MENU_ICON_WIN),
     .callback= selection_callbacks.player_wins,
   };
   game_section_items[MTGCounterMenuGameSectionItemOpponentWins] = (SimpleMenuItem){
-    .title = "I lost the game",
+    .title = "I lost",
+    .icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MENU_ICON_LOSE),
     .callback= selection_callbacks.opponent_wins,
   };
   game_section_items[MTGCounterMenuGameSectionItemDraw] = (SimpleMenuItem){
     .title = "Draw game",
+    .icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MENU_ICON_DRAW),
     .callback= selection_callbacks.draw,
   };
   game_section_items[MTGCounterMenuGameSectionItemReset] = (SimpleMenuItem){
     .title = "Next match",
+    .subtitle = "Resets everything",
+    .icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MENU_ICON_RESET),
     .callback= selection_callbacks.game_reset,
   };
 }
