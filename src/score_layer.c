@@ -8,6 +8,8 @@ static GBitmap* rotated_digit_bitmaps[11];
 struct ScoreLayer {
   Layer* background_layer;
 
+  GCornerMask corner_mask;
+
   BitmapLayer** digit_layers;
   uint8_t num_digits;
 
@@ -84,6 +86,7 @@ static void score_layer_update(ScoreLayer* score_layer) {
   // create and layout the digit layers dependent on the orientation
   // 1. iteration: create bitmap layers and determine required size
   uint32_t digits_width = 0;
+  uint32_t digits_height = 0;
   for (uint8_t i = 0; i < num_digits_needed; ++i)
   {
     // pick the right bitmap for the current orientation
@@ -129,6 +132,15 @@ static void score_layer_update(ScoreLayer* score_layer) {
   free(digits);
 }
 
+static void background_layer_update(Layer* me, GContext* ctx) {
+  GRect frame = layer_get_frame(me);
+  frame.origin = (GPoint){ .x = 0, .y = 0 };
+  ScoreLayer* score_layer = (ScoreLayer*) *((ScoreLayer**) layer_get_data(me));
+
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_rect(ctx, frame, 8, score_layer->corner_mask);
+}
+
 
 ScoreLayer* score_layer_create(GRect frame, uint8_t num_digits) {
   if (digit_bitmaps[0] == NULL) load_resources();
@@ -139,14 +151,14 @@ ScoreLayer* score_layer_create(GRect frame, uint8_t num_digits) {
   score_layer->num_digits = num_digits;
   score_layer->orientation = ScoreLayerOrientationNormal;
   score_layer->score = 20;
+  score_layer->corner_mask = GCornersAll;
 
   // init background layer
-  // GSize digit_size = digit_bitmaps[0]->bounds.size;
-  // GRect background_frame = (GRect) {
-  //   .origin = (GPoint) {.x = 0, .y = 0},
-  //   .size = (GSize) {.h = digit_size.h, .w = digit_size.w * num_digits}
-  // };
-  score_layer->background_layer = layer_create(frame);
+  score_layer->background_layer = layer_create_with_data(frame, sizeof(ScoreLayer*));
+  // keep a reference to the score layer for the update proc
+  ScoreLayer** data_pointer = (ScoreLayer**) layer_get_data(score_layer->background_layer);
+  *data_pointer = score_layer;
+  layer_set_update_proc(score_layer->background_layer, background_layer_update);
 
   // init space for digit layers
   score_layer->digit_layers = (BitmapLayer**) malloc(sizeof(BitmapLayer*) * num_digits);
@@ -191,4 +203,9 @@ void score_layer_set_orientation(ScoreLayer* score_layer, ScoreLayerOrientation 
 
   score_layer->orientation = orientation;
   score_layer_update(score_layer);
+}
+
+void score_layer_set_corner_mask(ScoreLayer* score_layer, GCornerMask corner_mask) {
+  score_layer->corner_mask = corner_mask;
+  layer_mark_dirty(score_layer->background_layer);
 }
