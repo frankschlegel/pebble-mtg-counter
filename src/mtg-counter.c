@@ -1,32 +1,17 @@
 #include <pebble.h>
 
+#include "state.h"
+#include "persistence.h"
+
 #include "decision_screen.h"
 #include "menu.h"
 #include "score_layer.h"
 
 
-#define LIFE_DEFAULT 20
-#define LIFE_MAX 999
-#define LIFE_MIN -999
-#define LIFE_STEP_DEFAULT -1
-#define GAMES_SCORE_DEFAULT 0
-#define GAMES_SCORE_MAX 99
 #define REPEATING_CLICK_INTERVAL 500
 #define ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL 500
 #define Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN 600
 #define Y_THRESHOLD_ORIENTATION_NORMAL 500
-
-
-enum PKEY {
-  LIFE_OPPONENT_PKEY,
-  LIFE_PLAYER_PKEY,
-  GAMES_WON_OPPONENT_PKEY,
-  GAMES_WON_PLAYER_PKEY,
-  GAMES_DRAW_PKEY,
-  LIFE_STEP_PKEY,
-  GAME_CONTINUES_ON_PURPOSE_PKEY,
-  MATCH_START_TIME_PKEY,
-};
 
 // timer
 static AppTimer* timer_orientation_check;
@@ -49,102 +34,43 @@ static GBitmap* action_icon_plus;
 static GBitmap* action_icon_minus;
 static GBitmap* action_icon_toggle;
 
-// state
-static int life_opponent = LIFE_DEFAULT;
-static int life_player = LIFE_DEFAULT;
-static uint8_t games_won_opponent = GAMES_SCORE_DEFAULT;
-static uint8_t games_won_player = GAMES_SCORE_DEFAULT;
-static uint8_t games_draw = GAMES_SCORE_DEFAULT;
-static short life_step = LIFE_STEP_DEFAULT;
 
-static bool game_continues_on_purpose; // the player decided not to quit the current game after life reached 0
-
-static time_t match_start_time;
-
-
-static void read_state() {
-  life_opponent      = persist_exists(LIFE_OPPONENT_PKEY)      ? persist_read_int(LIFE_OPPONENT_PKEY)      : LIFE_DEFAULT;
-  life_player        = persist_exists(LIFE_PLAYER_PKEY)        ? persist_read_int(LIFE_PLAYER_PKEY)        : LIFE_DEFAULT;
-  games_won_opponent = persist_exists(GAMES_WON_OPPONENT_PKEY) ? persist_read_int(GAMES_WON_OPPONENT_PKEY) : GAMES_SCORE_DEFAULT;
-  games_won_player   = persist_exists(GAMES_WON_PLAYER_PKEY)   ? persist_read_int(GAMES_WON_PLAYER_PKEY)   : GAMES_SCORE_DEFAULT;
-  games_draw         = persist_exists(GAMES_DRAW_PKEY)         ? persist_read_int(GAMES_DRAW_PKEY)         : GAMES_SCORE_DEFAULT;
-  life_step          = persist_exists(LIFE_STEP_PKEY)          ? persist_read_int(LIFE_STEP_PKEY)          : LIFE_STEP_DEFAULT;
-
-  game_continues_on_purpose = persist_exists(GAME_CONTINUES_ON_PURPOSE_PKEY) ? persist_read_bool(GAME_CONTINUES_ON_PURPOSE_PKEY) : false;
-
-  match_start_time = persist_exists(MATCH_START_TIME_PKEY) ? persist_read_int(MATCH_START_TIME_PKEY) : time(NULL);
-}
-
-static void safe_state() {
-  persist_write_int(LIFE_OPPONENT_PKEY,      life_opponent);
-  persist_write_int(LIFE_PLAYER_PKEY,        life_player);
-  persist_write_int(GAMES_WON_OPPONENT_PKEY, games_won_opponent);
-  persist_write_int(GAMES_WON_PLAYER_PKEY,   games_won_player);
-  persist_write_int(GAMES_DRAW_PKEY,         games_draw);
-  persist_write_int(LIFE_STEP_PKEY,          life_step);
-
-  persist_write_bool(GAME_CONTINUES_ON_PURPOSE_PKEY, game_continues_on_purpose);
-
-  persist_write_int(MATCH_START_TIME_PKEY, match_start_time);
-}
-
-static void update_opponent_life_counter() {
+void update_opponent_life_counter() {
   score_layer_set_score(score_layer_life_opponent, life_opponent);
 }
-
-static void update_player_life_counter() {
+void update_player_life_counter() {
   score_layer_set_score(score_layer_life_player, life_player);
 }
 
-static void update_games_won_counter_opponent() {
+void update_games_won_counter_opponent() {
   static char text[2];
   snprintf(text, sizeof(text), "%d", games_won_opponent);
   text_layer_set_text(text_layer_games_won_opponent, text);
 }
-
-static void update_games_won_counter_player() {
+void update_games_won_counter_player() {
   static char text[2];
   snprintf(text, sizeof(text), "%d", games_won_player);
   text_layer_set_text(text_layer_games_won_player, text);
 }
-
-static void update_games_draw_counter() {
+void update_games_draw_counter() {
   static char text[2];
   snprintf(text, sizeof(text), "%d", games_draw);
   text_layer_set_text(text_layer_games_draw, text);
 }
 
-static void update_action_bar() {
+void update_action_bar() {
   GBitmap* icon = life_step < 0 ? action_icon_minus : action_icon_plus;
 
   action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_UP, icon);
   action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_DOWN, icon);
 }
 
-static void update_match_timer() {
+void update_match_timer() {
   time_t diff = time(NULL) - match_start_time;
 
   static char text[9];
   strftime(text, sizeof(text), "%H:%M:%S", localtime(&diff));
   text_layer_set_text(text_layer_match_timer, text);
-}
-
-static void reset_game_state() {
-  life_opponent = LIFE_DEFAULT;
-  life_player = LIFE_DEFAULT;
-  game_continues_on_purpose = false;
-  update_opponent_life_counter();
-  update_player_life_counter();
-}
-
-static void reset_match_state() {
-  reset_game_state();
-  games_won_opponent = GAMES_SCORE_DEFAULT;
-  games_won_player = GAMES_SCORE_DEFAULT;
-  match_start_time = time(NULL);
-  update_games_won_counter_opponent();
-  update_games_won_counter_player();
-  update_match_timer();
 }
 
 static void opponent_wins() {
@@ -153,14 +79,12 @@ static void opponent_wins() {
   update_games_won_counter_opponent();
   reset_game_state();
 }
-
 static void player_wins() {
   // cap
   games_won_player = (games_won_player == GAMES_SCORE_MAX) ? GAMES_SCORE_MAX : games_won_player + 1;
   update_games_won_counter_player();
   reset_game_state();
 }
-
 static void draw() {
   // cap
   games_draw = (games_draw == GAMES_SCORE_MAX) ? GAMES_SCORE_MAX : games_draw + 1;
@@ -178,11 +102,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void* context) {
   life_step *= -1;
   update_action_bar();
 }
-
 static void select_long_click_handler(ClickRecognizerRef recognizer, void* context) {
   show_menu();
 }
-
 static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
   life_opponent += life_step;
   // cap
@@ -195,7 +117,6 @@ static void up_repeating_click_handler(ClickRecognizerRef recognizer, void* cont
     show_decision_screen("You win, congratulation! Start the next game?", player_wins, continue_game_on_purpose);
   }
 }
-
 static void down_repeating_click_handler(ClickRecognizerRef recognizer, void* context) {
   life_player += life_step;
   // cap
@@ -245,17 +166,14 @@ static void menu_select_game_reset_callback(int index, void *ctx) {
   reset_match_state();
   hide_menu();
 }
-
 static void menu_select_opponent_wins_callback(int index, void *ctx) {
   opponent_wins();
   hide_menu();
 }
-
 static void menu_select_player_wins_callback(int index, void *ctx) {
   player_wins();
   hide_menu();
 }
-
 static void menu_select_draw_callback(int index, void *ctx) {
   draw();
   hide_menu();
@@ -341,8 +259,8 @@ static void main_window_appear(Window* window) {
 
 
 static void init(void) {
-  // restore state
-  read_state();
+  // restore persistent state
+  read_persistent_state();
 
   // register menu callbacks
   set_menu_callbacks((MTGCounterMenuSelectionCallbacks) {
@@ -371,7 +289,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
-  safe_state();
+  safe_persistent_state();
 
   accel_data_service_unsubscribe();
 
