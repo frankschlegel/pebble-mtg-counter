@@ -6,6 +6,7 @@
 #include "appmessage.h"
 
 #include "autorotate.h"
+#include "invert_colors.h"
 
 #include "decision_screen.h"
 #include "menu.h"
@@ -290,6 +291,11 @@ static void main_window_load(Window* window) {
   text_layer_set_text_color(text_layer_games_draw, GColorWhite);
   update_games_draw_counter();
   layer_add_child(game_score_draw_background_layer, text_layer_get_layer(text_layer_games_draw));
+
+  // add inverter layer
+  Layer* inverter_layer = invert_colors_get_layer();
+  layer_set_frame(inverter_layer, bounds);
+  layer_add_child(window_layer, inverter_layer);
 }
 
 static void main_window_unload(Window* window) {
@@ -325,12 +331,20 @@ static void main_window_appear(Window* window) {
   action_bar_layer_add_to_window(action_bar_layer, window);
   // set the click config provider
   action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
+
+  // move inverter layer on top of action bar layer
+  layer_insert_above_sibling(invert_colors_get_layer(), action_bar_layer_get_layer(action_bar_layer));
 }
 
 
-static void init(void) {
+static void init(void)
+{
   // restore persistent state
   read_persistent_state();
+
+  // initialize modules
+  autorotate_init();
+  invert_colors_init();
 
   // register menu callbacks
   set_menu_callbacks((MTGCounterMenuSelectionCallbacks) {
@@ -353,20 +367,22 @@ static void init(void) {
   // register callback for match timer
   tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
 
-  // initialize auto rotation module
-  autorotate_init();
+  // update the app to reflect current configuration
   config_handle_update();
 
   // initialize app message and request config (unless read from persistent storage)
-  // if a config was available, update the app
   init_app_message();
   if (!has_config) request_config_via_appmessage();
 }
 
-static void deinit(void) {
+static void deinit(void)
+{
+  // safe state to persistent storage
   safe_persistent_state();
 
+  // unregister modules
   autorotate_deinit();
+  invert_colors_deinit();
 
   destroy_menu();
   destroy_decision_screen();
@@ -374,7 +390,8 @@ static void deinit(void) {
   window_destroy(main_window);
 }
 
-int main(void) {
+int main(void)
+{
   init();
   app_event_loop();
   deinit();
