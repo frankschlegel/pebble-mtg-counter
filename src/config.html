@@ -7,28 +7,51 @@ Modified for magic-mtg-counter.
 <head>
     <meta name="viewport" content="width=device-width">
     <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
     body {
         background-color: #777777;
         font-family: sans-serif;
+        margin: 8px;
     }
-    div,form {
-        width: 280px;
+    form table {
+        width: 100%;
         text-shadow: 0px 1px 1px white;
-        padding: 10px;
-        margin: 10px 0;
+        padding: 5px 10px;
+        margin-bottom: 8px;
         border: 1px solid #333333;
         border-radius: 10px;
         background: #eeeeee;
         text-shadow:1px 1px 1px #ffffff;
+        border-spacing: 0;
     }
-    div.header {color: #666666; text-align: center; font-weight:bold; font-size:24px;}
-    p,a {color: #cccccc}
-    hr {clear: both; margin: 5px 0}
-    input {
-        display:none; 
-        margin:10px;
+    form th {
+        color: #666666;
+        text-align: center;
+        font-weight: bold;
+        font-size: 24px;
+        line-height: 24px;
+        padding: 10px 0;
+        margin: 5px 0;
     }
-    input + label {
+
+    form td:first-child { text-align: right; }
+    form td:last-child { white-space:nowrap; }
+    form td {
+        border-top: 1px solid #333333;
+        padding: 5px;
+        vertical-align: middle;
+    }
+
+    select {
+        margin: 2px 0 2px 0;
+    }
+    input[type=radio], input[type=submit] {
+        display:none;
+    }
+    input + label, select {
         display:inline-block;
         box-shadow: inset 0px 1px 0px 0px #ffffff;
         background: #eeeeee;
@@ -41,14 +64,22 @@ Modified for magic-mtg-counter.
         font-weight:bold;
         text-align:center;
         text-shadow:1px 1px 1px #ffffff;
+    }
+    input + label {
         margin: 2px 0 2px 0;
         padding: 10px 0;
     }
+    select {
+        border-radius: 10px;
+        padding: 10px 15px;
+    }
+    select.no-left-margin { margin-left: 0px; }
+    select.no-right-margin { margin-right: 0px; }
     input[type=submit] + label {
         padding: 10px 0;
-        width: 280px;
+        width: 100%;
         font-size: 32px;
-        border-radius: 20px;
+        border-radius: 10px;
     }
     input[type=radio]:checked + label, input[type=submit] + label { 
         background: #5cb811;
@@ -57,52 +88,137 @@ Modified for magic-mtg-counter.
         color: #FFFFFF;
         text-shadow: 1px 1px 1px #339933;
     }
-    .left { border-radius: 10px 0 0 10px; width: 55px }
-    .right { border-radius: 0 10px 10px 0; width: 55px }
-    .middle {width: 160px }
-    .float {float: right; width: 70px}
+    label.toggle-left {
+        border-radius: 10px 0 0 10px;
+        width: 70px;
+        border-right: none;
+    }
+    label.toggle-right {
+        border-radius: 0 10px 10px 0;
+        width: 70px;
+    }
+
+    #before_match_end_time {
+        border-top: none;
+        /*display: none;*/
+    }
+
     </style>
 </head>
 <body>
-    <div class="header">ONE</div>
     <form id="form" onsubmit="return onSubmit(this)">
-        Seconds hand:
-        <br>
-        <input
-            type="radio" id="seconds0" name="seconds_mode" value="0"><label for="seconds0" class="left">Off</label><input 
-            type="radio" id="seconds1" name="seconds_mode" value="1"><label for="seconds1" class="middle">Off if low battery</label><input
-            type="radio" id="seconds2" name="seconds_mode" value="2"><label for="seconds2" class="right">On</label>
-        <hr>
-        Battery indicator:
-        <br>
-        <input
-            type="radio" id="battery0" name="battery_mode" value="0"><label for="battery0" class="left">Off</label><input 
-            type="radio" id="battery1" name="battery_mode" value="1"><label for="battery1" class="middle">If battery is low</label><input
-            type="radio" id="battery2" name="battery_mode" value="2"><label for="battery2" class="right">On</label>
-        <hr>
-        Bluetooth indicator:
-        <br>
-        <input
-            type="radio" id="bluetooth0" name="bluetooth_mode" value="0"><label for="bluetooth0" class="left">Off</label><input 
-            type="radio" id="bluetooth1" name="bluetooth_mode" value="1"><label for="bluetooth1" class="middle">If disconnected</label><input
-            type="radio" id="bluetooth2" name="bluetooth_mode" value="2"><label for="bluetooth2" class="right">On</label>
-        <hr>
-        <input
-            type="radio" id="date1" name="date_mode" value="1"><label for="date1" class="right float">Show</label><input 
-            type="radio" id="date0" name="date_mode" value="0"><label for="date0" class="left float">Hide</label>
-        Week day<br>and date:
-        <hr>
-        <input
-            type="radio" id="graphics1" name="graphics_mode" value="1"><label for="graphics1" class="right float">White</label><input 
-            type="radio" id="graphics0" name="graphics_mode" value="0"><label for="graphics0" class="left float">Black</label>
-        Color<br>scheme:
-        <hr>
-        <input
-            type="radio" id="connlost1" name="connlost_mode" value="1"><label for="connlost1" class="right float">Buzz</label><input 
-            type="radio" id="connlost0" name="connlost_mode" value="0"><label for="connlost0" class="left float">Ignore</label>
-        If lost phone<br>connection:
-        <hr>
-        <input type="submit" id="save" value="Save"><label for="save">Save</label>
+        
+    <table>
+        <col class="left-column"><col class="right-column">
+
+        <tr><th colspan="2">Match Settings</th></tr>
+        
+        <tr>
+            <td><label for="life_points">Initial life points:</label></td>
+            <td>
+                <select id="life_points" name="life_points">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><label for="match_duration_hours">Match duration:</label></td>
+            <td>
+                <select id="match_duration_hours" name="match_duration_hours" class="no-right-margin">
+                    <option value="0" selected="selected">&nbsp;0</option>
+                    <option value="1">&nbsp;1</option>
+                    <option value="2">&nbsp;2</option>
+                    <option value="3">&nbsp;3</option>
+                    <option value="4">&nbsp;4</option>
+                    <option value="5">&nbsp;5</option>
+                </select>
+                :
+                <select id="match_duration_minutes" name="match_duration_minutes" class="no-left-margin">
+                    <option value="0" selected="selected">00</option>
+                    <option value="1">01</option>
+                    <option value="2">02</option>
+                    <option value="3">03</option>
+                </select>
+                <label for="match_duration_minutes">h</label>
+            </td>
+        </tr>
+    </table>
+        
+    <table>
+        <col class="left-column"><col class="right-column">
+        
+        <tr><th colspan="2">Notification Settings</th></tr>
+        
+        <tr>
+            <td>When match ends:</td>
+            <td>
+                <input type="radio" id="match_end_vibration_0" name="match_end_vibration" value="0"><label for="match_end_vibration_0" class="toggle-left">Ignore</label><input type="radio" id="match_end_vibration_1" name="match_end_vibration" value="1"><label for="match_end_vibration_1" class="toggle-right">Vibrate</label>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>Before match ends:</td>
+            <td>
+                <input type="radio" id="before_match_end_vibration_0" name="before_match_end_vibration" value="0"><label for="before_match_end_vibration_0" class="toggle-left">Ignore</label><input type="radio" id="before_match_end_vibration_1" name="before_match_end_vibration" value="1"><label for="before_match_end_vibration_1" class="toggle-right">Vibrate</label>
+            </td>
+        </tr>
+
+        <tr id="before_match_end_time">
+            <td></td>
+            <td>
+                <select id="before_match_end_hours" name="before_match_end_hours" class="no-right-margin">
+                    <option value="0" selected="selected">&nbsp;0</option>
+                    <option value="1">&nbsp;1</option>
+                    <option value="2">&nbsp;2</option>
+                    <option value="3">&nbsp;3</option>
+                    <option value="4">&nbsp;4</option>
+                    <option value="5">&nbsp;5</option>
+                </select>
+                :
+                <select id="before_match_end_minutes" name="before_match_end_minutes" class="no-left-margin">
+                    <option value="0" selected="selected">00</option>
+                    <option value="1">01</option>
+                    <option value="2">02</option>
+                    <option value="3">03</option>
+                </select>
+                h<br>
+                before match ends
+            </td>
+        </tr>
+
+    </table>
+    <table>
+        <col class="left-column"><col class="right-column">
+        
+        <tr><th colspan="2">Visual Settings</th></tr>
+        
+        <tr>
+            <td>Show timer:</td>
+            <td>
+                <input type="radio" id="show_timer_0" name="show_timer" value="0"><label for="show_timer_0" class="toggle-left">Off</label><input type="radio" id="show_timer_1" name="show_timer" value="1"><label for="show_timer_1" class="toggle-right">On</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td>When showing opponent:</td>
+            <td>
+                <input type="radio" id="rotation_lock_1" name="rotation_lock" value="1"><label for="rotation_lock_1" class="toggle-left">Ignore</label><input type="radio" id="rotation_lock_0" name="rotation_lock" value="0"><label for="rotation_lock_0" class="toggle-right">Rotate</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Color scheme:</td>
+            <td>
+                <input type="radio" id="invert_colors_0" name="invert_colors" value="0"><label for="invert_colors_0" class="toggle-left">White</label><input type="radio" id="invert_colors_1" name="invert_colors" value="1"><label for="invert_colors_1" class="toggle-right">Black</label>
+            </td>
+        </tr>
+    </table>
+
+    <input type="submit" id="save" value="Save"><label for="save">Save</label>
+
     </form>
     <script>
         /* (Comments are multi-line comments spanning single lines only */
