@@ -12,6 +12,9 @@
 #define GAMES_SCORE_DEFAULT 0
 #define GAMES_SCORE_MAX 99
 #define REPEATING_CLICK_INTERVAL 500
+#define ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL 500
+#define Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN 600
+#define Y_THRESHOLD_ORIENTATION_NORMAL 500
 
 
 enum PKEY {
@@ -25,6 +28,9 @@ enum PKEY {
   MATCH_START_TIME_PKEY,
 };
 
+// timer
+static AppTimer* timer_orientation_check;
+
 // UI
 static Window* main_window;
 
@@ -36,7 +42,7 @@ static TextLayer* text_layer_games_draw;
 static TextLayer* text_layer_match_timer;
 
 static ScoreLayer* score_layer_life_opponent;
-// static ScoreLayer* score_layer_life_player;
+static ScoreLayer* score_layer_life_player;
 
 static ActionBarLayer* action_bar_layer;
 static GBitmap* action_icon_plus;
@@ -83,16 +89,11 @@ static void safe_state() {
 }
 
 static void update_opponent_life_counter() {
-  // static char text[5];
-  // snprintf(text, sizeof(text), "%d", life_opponent);
-  // text_layer_set_text(text_layer_life_opponent, text);
   score_layer_set_score(score_layer_life_opponent, life_opponent);
 }
 
 static void update_player_life_counter() {
-  static char text[5];
-  snprintf(text, sizeof(text), "%d", life_player);
-  text_layer_set_text(text_layer_life_player, text);
+  score_layer_set_score(score_layer_life_player, life_player);
 }
 
 static void update_games_won_counter_opponent() {
@@ -221,6 +222,25 @@ static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 
+static void check_orientation(void *data) {
+  AccelData accel_data = (AccelData) { .x = 0, .y = 0, .z = 0 };
+  accel_service_peek(&accel_data);
+
+  ScoreLayerOrientation current_orientation = score_layer_get_orientation(score_layer_life_opponent);
+
+  if (current_orientation == ScoreLayerOrientationNormal && accel_data.y > Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN) {
+    score_layer_set_orientation(score_layer_life_opponent, ScoreLayerOrientationUpsideDown);
+    score_layer_set_orientation(score_layer_life_player, ScoreLayerOrientationUpsideDown);
+  } else if (current_orientation == ScoreLayerOrientationUpsideDown && accel_data.y < Y_THRESHOLD_ORIENTATION_NORMAL) {
+    score_layer_set_orientation(score_layer_life_opponent, ScoreLayerOrientationNormal);
+    score_layer_set_orientation(score_layer_life_player, ScoreLayerOrientationNormal);
+  }
+
+  // restart timer
+  timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
+}
+
+
 static void menu_select_game_reset_callback(int index, void *ctx) {
   reset_match_state();
   hide_menu();
@@ -246,34 +266,19 @@ static void main_window_load(Window* window) {
   Layer* window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
-  // initialize the action bar
-  action_bar_layer = action_bar_layer_create();
-  // load the icons
+  // load the action bar icons
+  // the action bar itself is created on appear
   action_icon_plus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_PLUS);
   action_icon_minus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_MINUS);
   action_icon_toggle = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_TOGGLE);
-  action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_SELECT, action_icon_toggle);
-  update_action_bar();
-  // associate the action bar with the window
-  action_bar_layer_add_to_window(action_bar_layer, window);
-  // set the click config provider
-  action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
 
-  // text_layer_life_opponent = text_layer_create((GRect) { .origin = { 0, 0 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } });
-  // text_layer_set_text_alignment(text_layer_life_opponent, GTextAlignmentCenter);
-  // text_layer_set_font(text_layer_life_opponent, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
-  // update_opponent_life_counter();
-  // layer_add_child(window_layer, text_layer_get_layer(text_layer_life_opponent));
-
-  score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 0 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } }, 5);
+  score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 20 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 40 } }, 5);
   update_opponent_life_counter();
   layer_add_child(window_layer, score_layer_get_layer(score_layer_life_opponent));
 
-  text_layer_life_player = text_layer_create((GRect) { .origin = { 0, 80 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 60 } });
-  text_layer_set_text_alignment(text_layer_life_player, GTextAlignmentCenter);
-  text_layer_set_font(text_layer_life_player, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS));
+  score_layer_life_player = score_layer_create((GRect) { .origin = { 0, 100 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 40 } }, 5);
   update_player_life_counter();
-  layer_add_child(window_layer, text_layer_get_layer(text_layer_life_player));
+  layer_add_child(window_layer, score_layer_get_layer(score_layer_life_player));
 
   text_layer_match_timer = text_layer_create((GRect) { .origin = { 0, 60 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 30 } });
   text_layer_set_text_alignment(text_layer_match_timer, GTextAlignmentCenter);
@@ -312,6 +317,28 @@ static void main_window_unload(Window* window) {
   gbitmap_destroy(action_icon_toggle);
 }
 
+static void main_window_appear(Window* window) {
+  //XXX: This is a hack to prevent the action bar from remaining in the highlighted state
+  //     after pushing a new window to the stack.
+  //     http://forums.getpebble.com/discussion/8604
+
+  // destroy the old action bar
+  if (action_bar_layer != NULL) {
+    action_bar_layer_remove_from_window(action_bar_layer);
+    action_bar_layer_destroy(action_bar_layer);
+  }
+
+  // initialize the action bar
+  action_bar_layer = action_bar_layer_create();
+  // set the icons
+  action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_SELECT, action_icon_toggle);
+  update_action_bar();
+  // associate the action bar with the window
+  action_bar_layer_add_to_window(action_bar_layer, window);
+  // set the click config provider
+  action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
+}
+
 
 static void init(void) {
   // restore state
@@ -330,15 +357,23 @@ static void init(void) {
   window_set_window_handlers(main_window, (WindowHandlers) {
     .load = main_window_load,
     .unload = main_window_unload,
+    .appear = main_window_appear,
   });
+  window_set_status_bar_icon(main_window, gbitmap_create_with_resource(RESOURCE_ID_IMAGE_STATUS_BAR_ICON));
   window_stack_push(main_window, true /*animated*/);
 
   // register callback for match timer
   tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
+
+  // subscribe to accelerometer updates
+  accel_data_service_subscribe(0, NULL);
+  timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
 }
 
 static void deinit(void) {
   safe_state();
+
+  accel_data_service_unsubscribe();
 
   destroy_menu();
   destroy_decision_screen();
