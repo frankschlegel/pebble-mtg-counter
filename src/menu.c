@@ -46,7 +46,8 @@ static void init_game_section_items() {
   };
   game_section_items[MTGCounterMenuGameSectionItemReset] = (SimpleMenuItem){
     .title = "Next match",
-    .subtitle = "Reset games and timer",
+    .subtitle = "Resets everything",
+    .icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_MENU_ICON_RESET),
     .callback= selection_callbacks.game_reset,
   };
 }

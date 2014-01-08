@@ -36,6 +36,11 @@
       },
       {
         "type": "png",
+        "name": "IMAGE_MENU_ICON_RESET",
+        "file": "images/menu_icon_reset.png"
+      },
+      {
+        "type": "png",
         "name": "IMAGE_STATUS_BAR_ICON",
         "file": "images/status_bar_icon.png"
       },
