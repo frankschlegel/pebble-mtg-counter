@@ -17,16 +17,16 @@ static inline bool read_persistent_state_bool_default(int persistent_key, bool d
 
 void read_persistent_state() {
   // config
-  has_config = false;
-  // has_config = read_persistent_state_int (PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_LIFE_DEFAULT, &life_default) && has_config;
-  // has_config = read_persistent_state_int (PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_MATCH_DURATION, &match_duration) && has_config;
-  // has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_MATCH_END_VIBRATION, &match_end_vibration) && has_config;
-  // has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_BEFORE_MATCH_END_VIBRATION, &before_match_end_vibration) && has_config;
-  // has_config = read_persistent_state_int (PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_BEFORE_MATCH_END_TIME, &before_match_end_time) && has_config;
-  // has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_SHOW_TIMER, &show_timer) && has_config;
-  // has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_ROTATION_LOCK, &rotation_lock) && has_config;
-  // has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_INVERT_COLORS, &invert_colors) && has_config;
-  // if (has_config) APP_LOG(APP_LOG_LEVEL_DEBUG, "Loaded config");
+  has_config = true;
+  has_config = read_persistent_state_int (PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_LIFE_DEFAULT, &life_default) && has_config;
+  has_config = read_persistent_state_int (PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_MATCH_DURATION, &match_duration) && has_config;
+  has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_MATCH_END_VIBRATION, &match_end_vibration) && has_config;
+  has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_BEFORE_MATCH_END_VIBRATION, &before_match_end_vibration) && has_config;
+  has_config = read_persistent_state_int (PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_BEFORE_MATCH_END_TIME, &before_match_end_time) && has_config;
+  has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_SHOW_TIMER, &show_timer) && has_config;
+  has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_ROTATION_LOCK, &rotation_lock) && has_config;
+  has_config = read_persistent_state_bool(PERSISTENT_KEY_CONFIG_BASE+CONFIG_KEY_INVERT_COLORS, &invert_colors) && has_config;
+  if (has_config) APP_LOG(APP_LOG_LEVEL_DEBUG, "Loaded config");
 
   // runtime state
   life_opponent = read_persistent_state_int_default(PERSISTENT_KEY_LIFE_OPPONENT, life_default);
