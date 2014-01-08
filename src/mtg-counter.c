@@ -266,18 +266,11 @@ static void main_window_load(Window* window) {
   Layer* window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
-  // initialize the action bar
-  action_bar_layer = action_bar_layer_create();
-  // load the icons
+  // load the action bar icons
+  // the action bar itself is created on appear
   action_icon_plus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_PLUS);
   action_icon_minus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_MINUS);
   action_icon_toggle = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ACTION_ICON_TOGGLE);
-  action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_SELECT, action_icon_toggle);
-  update_action_bar();
-  // associate the action bar with the window
-  action_bar_layer_add_to_window(action_bar_layer, window);
-  // set the click config provider
-  action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
 
   score_layer_life_opponent = score_layer_create((GRect) { .origin = { 0, 20 }, .size = { bounds.size.w - ACTION_BAR_WIDTH, 40 } }, 5);
   update_opponent_life_counter();
@@ -324,6 +317,28 @@ static void main_window_unload(Window* window) {
   gbitmap_destroy(action_icon_toggle);
 }
 
+static void main_window_appear(Window* window) {
+  //XXX: This is a hack to prevent the action bar from remaining in the highlighted state
+  //     after pushing a new window to the stack.
+  //     http://forums.getpebble.com/discussion/8604
+
+  // destroy the old action bar
+  if (action_bar_layer != NULL) {
+    action_bar_layer_remove_from_window(action_bar_layer);
+    action_bar_layer_destroy(action_bar_layer);
+  }
+
+  // initialize the action bar
+  action_bar_layer = action_bar_layer_create();
+  // set the icons
+  action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_SELECT, action_icon_toggle);
+  update_action_bar();
+  // associate the action bar with the window
+  action_bar_layer_add_to_window(action_bar_layer, window);
+  // set the click config provider
+  action_bar_layer_set_click_config_provider(action_bar_layer, click_config_provider);
+}
+
 
 static void init(void) {
   // restore state
@@ -342,6 +357,7 @@ static void init(void) {
   window_set_window_handlers(main_window, (WindowHandlers) {
     .load = main_window_load,
     .unload = main_window_unload,
+    .appear = main_window_appear,
   });
   window_set_status_bar_icon(main_window, gbitmap_create_with_resource(RESOURCE_ID_IMAGE_STATUS_BAR_ICON));
   window_stack_push(main_window, true /*animated*/);
