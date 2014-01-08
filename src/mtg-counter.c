@@ -5,18 +5,14 @@
 #include "persistence.h"
 #include "appmessage.h"
 
+#include "autorotate.h"
+
 #include "decision_screen.h"
 #include "menu.h"
 #include "score_layer.h"
 
 
 #define REPEATING_CLICK_INTERVAL 500
-#define ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL 500
-#define Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN 600
-#define Y_THRESHOLD_ORIENTATION_NORMAL 500
-
-// timer
-static AppTimer* timer_orientation_check;
 
 // UI
 static Window* main_window;
@@ -27,9 +23,6 @@ static TextLayer* text_layer_games_won_opponent;
 static TextLayer* text_layer_games_won_player;
 static TextLayer* text_layer_games_draw;
 static TextLayer* text_layer_match_timer;
-
-static ScoreLayer* score_layer_life_opponent;
-static ScoreLayer* score_layer_life_player;
 
 static ActionBarLayer* action_bar_layer;
 static GBitmap* action_icon_plus;
@@ -142,25 +135,6 @@ static void click_config_provider(void* context) {
 
 static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_match_timer();
-}
-
-
-static void check_orientation(void *data) {
-  AccelData accel_data = (AccelData) { .x = 0, .y = 0, .z = 0 };
-  accel_service_peek(&accel_data);
-
-  ScoreLayerOrientation current_orientation = score_layer_get_orientation(score_layer_life_opponent);
-
-  if (current_orientation == ScoreLayerOrientationNormal && accel_data.y > Y_THRESHOLD_ORIENTATION_UPSIDE_DOWN) {
-    score_layer_set_orientation(score_layer_life_opponent, ScoreLayerOrientationUpsideDown);
-    score_layer_set_orientation(score_layer_life_player, ScoreLayerOrientationUpsideDown);
-  } else if (current_orientation == ScoreLayerOrientationUpsideDown && accel_data.y < Y_THRESHOLD_ORIENTATION_NORMAL) {
-    score_layer_set_orientation(score_layer_life_opponent, ScoreLayerOrientationNormal);
-    score_layer_set_orientation(score_layer_life_player, ScoreLayerOrientationNormal);
-  }
-
-  // restart timer
-  timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
 }
 
 
@@ -285,11 +259,12 @@ static void init(void) {
   // register callback for match timer
   tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
 
-  // subscribe to accelerometer updates
-  accel_data_service_subscribe(0, NULL);
-  timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
+  // initialize auto rotation module
+  autorotate_init();
+  config_handle_update();
 
   // initialize app message and request config (unless read from persistent storage)
+  // if a config was available, update the app
   init_app_message();
   if (!has_config) request_config_via_appmessage();
 }
@@ -297,7 +272,7 @@ static void init(void) {
 static void deinit(void) {
   safe_persistent_state();
 
-  accel_data_service_unsubscribe();
+  autorotate_deinit();
 
   destroy_menu();
   destroy_decision_screen();

@@ -38,5 +38,7 @@ extern bool invert_colors;
 extern bool has_config;
 
 
+void config_handle_update();
+
 void request_config_via_appmessage();
 void handle_config_received_via_appmessage(DictionaryIterator *received);

@@ -1,5 +1,3 @@
-#include <pebble.h>
-
 void update_opponent_life_counter();
 void update_player_life_counter();
 

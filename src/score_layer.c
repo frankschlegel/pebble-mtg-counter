@@ -1,4 +1,10 @@
+#include <pebble.h>
+
 #include "score_layer.h"
+
+
+ScoreLayer* score_layer_life_opponent;
+ScoreLayer* score_layer_life_player;
 
 
 static GBitmap* digit_bitmaps[11];
@@ -183,10 +189,18 @@ ScoreLayerOrientation score_layer_get_orientation(ScoreLayer* score_layer) {
   return score_layer->orientation;
 }
 
-
 void score_layer_set_orientation(ScoreLayer* score_layer, ScoreLayerOrientation orientation) {
   if (score_layer->orientation == orientation) return;
 
   score_layer->orientation = orientation;
   score_layer_update(score_layer);
+}
+
+ScoreLayerOrientation score_layer_get_orientation_all() {
+  return score_layer_get_orientation(score_layer_life_opponent);
+}
+
+void score_layer_set_orientation_all(ScoreLayerOrientation orientation) {
+  score_layer_set_orientation(score_layer_life_opponent, orientation);
+  score_layer_set_orientation(score_layer_life_player, orientation);
 }

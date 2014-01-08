@@ -2,8 +2,10 @@
 
 #include "config.h"
 #include "appmessage.h"
+
 #include "state.h"
 #include "ui.h"
+#include "autorotate.h"
 
 
 int life_default = LIFE_DEFAULT_DEFAULT;
@@ -16,6 +18,8 @@ bool rotation_lock = ROTATION_LOCK_DEFAULT;
 bool invert_colors = INVERT_COLORS_DEFAULT;
 
 bool has_config = false; // prevents saving default config in JavaScript. See deinit()
+
+static void config_update_autorotate();
 
 
 void request_config_via_appmessage()
@@ -67,5 +71,19 @@ void handle_config_received_via_appmessage(DictionaryIterator *received)
     update_player_life_counter();
   }
 
+  config_handle_update();
+}
+
+void config_handle_update()
+{
   // TODO update UI, timers, ...
+  config_update_autorotate();
+}
+
+static void config_update_autorotate() {
+  if (rotation_lock) {
+    autorotate_disable(true /* rotate back to normal */);
+  } else {
+    autorotate_enable();
+  }
 }
