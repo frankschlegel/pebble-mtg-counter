@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 Original from Original from https://github.com/bertfreudenberg/PebbleONE.
-Modified for magic-mtg-counter.
+Modified for pebble-mtg-counter.
 -->
 <html>
 <head>
@@ -120,9 +120,9 @@ Modified for magic-mtg-counter.
         <tr><th colspan="2">Match Settings</th></tr>
         
         <tr>
-            <td><label for="life_points">Initial life points:</label></td>
+            <td><label for="life_default">Initial life points:</label></td>
             <td>
-                <select id="life_points" name="life_points">
+                <select id="life_default" name="life_default">
                 </select>
             </td>
         </tr>
@@ -236,7 +236,7 @@ Modified for magic-mtg-counter.
 
         function initSelects() {
             var form = document.getElementById('form');
-            initSelect(form, 'life_points', 1, 99, false);
+            initSelect(form, 'life_default', 1, 99, false);
             initSelect(form, 'match_duration_hours', 0, 9, false);
             initSelect(form, 'match_duration_minutes', 0, 60, true);
             initSelect(form, 'before_match_end_time_hours', 0, 9, false);
@@ -298,7 +298,7 @@ Modified for magic-mtg-counter.
                 config[selects[i].name] = parseInt(selects[i].value);
             }
             convertHoursAndMinutesToTime(config, 'match_duration');
-            convertHoursAndMinutesToTime(config, 'before_match_end');
+            convertHoursAndMinutesToTime(config, 'before_match_end_time');
             /* read radios */
             var inputs = form.getElementsByTagName('input');
             for (var i = 0; i < inputs.length; i++) {

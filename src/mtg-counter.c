@@ -1,7 +1,9 @@
 #include <pebble.h>
 
 #include "state.h"
+#include "config.h"
 #include "persistence.h"
+#include "appmessage.h"
 
 #include "decision_screen.h"
 #include "menu.h"
@@ -286,6 +288,10 @@ static void init(void) {
   // subscribe to accelerometer updates
   accel_data_service_subscribe(0, NULL);
   timer_orientation_check = app_timer_register(ORIENTATION_CHECK_TIMER_UPDATE_INTERVAL, check_orientation, NULL);
+
+  // initialize app message and request config (unless read from persistent storage)
+  init_app_message();
+  if (!has_config) request_config_via_appmessage();
 }
 
 static void deinit(void) {

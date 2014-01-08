@@ -1,6 +1,7 @@
 #include <pebble.h>
 
 #include "state.h"
+#include "config.h"
 
 #include "ui.h"
 
@@ -9,18 +10,18 @@
  * runtime state
 */
 
-int life_opponent = LIFE_DEFAULT;
-int life_player = LIFE_DEFAULT;
+int life_opponent = LIFE_DEFAULT_DEFAULT;
+int life_player = LIFE_DEFAULT_DEFAULT;
 uint8_t games_won_opponent = GAMES_SCORE_DEFAULT;
 uint8_t games_won_player = GAMES_SCORE_DEFAULT;
 uint8_t games_draw = GAMES_SCORE_DEFAULT;
 short life_step = LIFE_STEP_DEFAULT;
-bool game_continues_on_purpose; // the player decided not to quit the current game after life reached 0
+bool game_continues_on_purpose = false; // the player decided not to quit the current game after life reached 0
 time_t match_start_time;
 
 void reset_game_state() {
-  life_opponent = LIFE_DEFAULT;
-  life_player = LIFE_DEFAULT;
+  life_opponent = life_default;
+  life_player = life_default;
   game_continues_on_purpose = false;
   update_opponent_life_counter();
   update_player_life_counter();

@@ -7,3 +7,5 @@
 enum AppMessageKey {
   APP_MESSAGE_KEY_REQUEST_CONFIG = 100,
 };
+
+void init_app_message();

@@ -1,7 +1,6 @@
 /*
  * runtime state
 */
-#define LIFE_DEFAULT 20
 #define LIFE_MAX 999
 #define LIFE_MIN -999
 #define LIFE_STEP_DEFAULT -1

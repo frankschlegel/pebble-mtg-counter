@@ -27,7 +27,7 @@
 
 // the config dict is sent as app message to the watch
 var config = {
-    "life_points": 20,
+    "life_default": 20,
     "match_duration": 50,
     "match_end_vibration": 1,
     "before_match_end_vibration": 0,
@@ -36,6 +36,7 @@ var config = {
     "rotation_lock": 0,
     "invert_colors": 0,
 };
+var allowed_config_keys = Object.keys(config);
 
 // config_html will be assigned the contents of config.html during build (See /wscript).
 var config_html; 
@@ -49,18 +50,19 @@ function send_config_to_pebble() {
 
 // read config from persistent storage
 Pebble.addEventListener('ready', function () {
-    var json = window.localStorage.getItem('config');
-    if (typeof json === 'string') {
-        config = JSON.parse(json);
-        console.log("loaded config " + JSON.stringify(config));
+    var stored_config = window.localStorage.getItem('config');
+    if (typeof stored_config !== 'undefined' && stored_config !== null) {
+        config = stored_config;
+        console.log("loaded config " + JSON.stringify(stored_config));
     }
 });
 
 // got message from pebble
 Pebble.addEventListener('appmessage', function(e) {
     console.log("got message " + JSON.stringify(e.payload));
-    if (e.payload.request_config)
+    if (e.payload.request_config) {
         send_config_to_pebble();
+    }
 });
 
 // open config window
@@ -72,9 +74,23 @@ Pebble.addEventListener('showConfiguration', function () {
 // store config and send to watch
 Pebble.addEventListener('webviewclosed', function (e) {
     if (e.response && e.response.length) {
-        config = JSON.parse(e.response);
-        console.log("storing config " + e.response);
-        window.localStorage.setItem('config', e.response);
+        var returned_config = JSON.parse(e.response);
+
+        // strip keys that are not allowed. else sending would fail!
+        var stripped_config = {};
+        for (var i = allowed_config_keys.length - 1; i >= 0; i--) {
+            var key = allowed_config_keys[i];
+            var value = returned_config[key];
+            if (typeof value !== 'undefined') {
+                stripped_config[key] = value;
+            }
+        }
+
+        // store
+        config = stripped_config;
+        console.log("storing config " + JSON.stringify(config));
+        window.localStorage.setItem('config', config);
+        // send
         send_config_to_pebble();
     }
 });
