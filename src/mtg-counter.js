@@ -50,10 +50,11 @@ function send_config_to_pebble() {
 
 // read config from persistent storage
 Pebble.addEventListener('ready', function () {
+    //window.localStorage.clear();
     var stored_config = window.localStorage.getItem('config');
-    if (typeof stored_config !== 'undefined' && stored_config !== null) {
-        config = stored_config;
-        console.log("loaded config " + JSON.stringify(stored_config));
+    if (typeof stored_config === 'string') {
+        config = JSON.parse(stored_config);
+        console.log("loaded config " + stored_config);
     }
 });
 
@@ -88,8 +89,9 @@ Pebble.addEventListener('webviewclosed', function (e) {
 
         // store
         config = stripped_config;
-        console.log("storing config " + JSON.stringify(config));
-        window.localStorage.setItem('config', config);
+        var config_string = JSON.stringify(config);
+        console.log("storing config " + config_string);
+        window.localStorage.setItem('config', config_string);
         // send
         send_config_to_pebble();
     }
