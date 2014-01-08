@@ -98,10 +98,7 @@ Modified for magic-mtg-counter.
         width: 70px;
     }
 
-    #before_match_end_time {
-        border-top: none;
-        /*display: none;*/
-    }
+    .hidden { display: none; }
 
     </style>
 </head>
@@ -153,7 +150,7 @@ Modified for magic-mtg-counter.
         <tr>
             <td>Before match ends:</td>
             <td>
-                <input type="radio" id="before_match_end_vibration_0" name="before_match_end_vibration" value="0"><label for="before_match_end_vibration_0" class="toggle-left">Ignore</label><input type="radio" id="before_match_end_vibration_1" name="before_match_end_vibration" value="1"><label for="before_match_end_vibration_1" class="toggle-right">Vibrate</label>
+                <input type="radio" id="before_match_end_vibration_0" name="before_match_end_vibration" value="0" onclick="updateBeforeMatchEndsTime(this.value)"><label for="before_match_end_vibration_0" class="toggle-left">Ignore</label><input type="radio" id="before_match_end_vibration_1" name="before_match_end_vibration" value="1" onclick="updateBeforeMatchEndsTime(this.value)"><label for="before_match_end_vibration_1" class="toggle-right">Vibrate</label>
             </td>
         </tr>
 
@@ -253,6 +250,7 @@ Modified for magic-mtg-counter.
                     }
                 }
             }
+            updateBeforeMatchEndsTime(config['before_match_end_vibration']);
         }
         function updateFormFromDefaultConfig() {
             /* The keyword below will be replaced at runtime (incl. quotes). */
@@ -273,10 +271,11 @@ Modified for magic-mtg-counter.
             updateFormFromConfig(config);
         }
 
-        (function() {
-            initSelects();
-            updateFormFromDefaultConfig();
-        })();
+        function updateBeforeMatchEndsTime(vibrationOn) {
+            vibrationOn = parseInt(vibrationOn);
+            var timeRow = document.getElementById('before_match_end_time');
+            timeRow.setAttribute('class', vibrationOn ? '' : 'hidden');
+        }
 
         function readConfigFromForm() {
             config = {};
@@ -300,6 +299,11 @@ Modified for magic-mtg-counter.
             window.location.href = "pebblejs://close#" + JSON.stringify(config);
             return false;
         }
+
+        (function() {
+            initSelects();
+            updateFormFromDefaultConfig();
+        })();
     </script>
 </body>
 </html>
