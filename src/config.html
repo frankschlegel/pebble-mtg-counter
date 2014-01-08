@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!--
+Original from Original from https://github.com/bertfreudenberg/PebbleONE.
+Modified for pebble-mtg-counter.
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width">
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background-color: #18384f;
+        font-family: sans-serif;
+        margin: 8px;
+    }
+    form table {
+        width: 100%;
+        padding: 5px 10px;
+        margin-bottom: 8px;
+        border: 1px solid #050c12;
+        border-radius: 10px;
+        background-color: #EBEBEB;
+        color: #050c12;
+        text-shadow: 0px 1px 1px #ffffff;
+        border-spacing: 0;
+    }
+    form th {
+        color: #D33B00;
+        text-shadow: 0px 1px 1px #FFF1ED;
+        text-align: center;
+        font-weight: bold;
+        font-size: 24px;
+        line-height: 24px;
+        padding: 10px 0;
+        margin: 5px 0;
+    }
+
+    form td:first-child { text-align: right; }
+    form td:last-child { white-space:nowrap; }
+    form td {
+        border-top: 1px solid #18384f;
+        padding: 5px;
+        vertical-align: middle;
+    }
+
+    select {
+        margin: 2px 0 2px 0;
+    }
+    input[type=radio], input[type=submit] {
+        display:none;
+    }
+    input + label, select {
+        display:inline-block;
+        box-shadow: inset 0px 1px 0px 0px #ffffff;
+        background: #d6d2cb;
+        background-image: linear-gradient(#eee, #d6d2cb);
+        text-indent:0;
+        border:1px solid #ccc;
+        display:inline-block;
+        color:#477093;
+        font-size:16px;
+        font-weight:bold;
+        text-align:center;
+        text-shadow: 0px -1px 1px #ffffff;
+    }
+    input + label {
+        margin: 2px 0 2px 0;
+        padding: 10px 0;
+    }
+    select {
+        border-radius: 10px;
+        padding: 10px 15px;
+    }
+    select.no-left-margin { margin-left: 0px; }
+    select.no-right-margin { margin-right: 0px; }
+    input[type=submit] + label {
+        padding: 10px 0;
+        width: 100%;
+        font-size: 32px;
+        border-radius: 10px;
+    }
+    input[type=radio]:checked + label { 
+        background: #e25107;
+        background-image: linear-gradient(#e25107, #fe8d06);
+        box-shadow: inset 0px -1px 1px #FFDAAE;
+        color: #ffffff;
+        text-shadow: 0px -1px 1px #992d1d;
+    }
+    input[type=submit] + label { 
+        background: #e25107;
+        background-image: linear-gradient(#fe8d06, #e25107);
+        box-shadow: inset 0px 1px 1px #721417;
+        color: #ffffff;
+        text-shadow: 0px -1px 2px #992d1d;
+        border-color: #0D1F2C;
+    }
+    label.toggle-left {
+        border-radius: 10px 0 0 10px;
+        width: 70px;
+        border-right: none;
+    }
+    label.toggle-right {
+        border-radius: 0 10px 10px 0;
+        width: 70px;
+    }
+
+    .hidden { display: none; }
+
+    </style>
+</head>
+<body>
+    <form id="form" onsubmit="return onSubmit(this)">
+        
+    <table>
+        <col class="left-column"><col class="right-column">
+
+        <tr><th colspan="2">Match Settings</th></tr>
+        
+        <tr>
+            <td><label for="life_default">Initial life points:</label></td>
+            <td>
+                <select id="life_default" name="life_default">
+                </select>
+            </td>
+        </tr>
+        
+        <tr>
+            <td><label for="match_duration_hours">Match duration:</label></td>
+            <td>
+                <select id="match_duration_hours" name="match_duration_hours" class="no-right-margin">
+                </select>
+                :
+                <select id="match_duration_minutes" name="match_duration_minutes" class="no-left-margin">
+                    <option value="0" selected="selected">00</option>
+                    <option value="1">01</option>
+                    <option value="2">02</option>
+                    <option value="3">03</option>
+                </select>
+                <label for="match_duration_minutes">h</label>
+            </td>
+        </tr>
+    </table>
+        
+    <table>
+        <col class="left-column"><col class="right-column">
+        
+        <tr><th colspan="2">Notification Settings</th></tr>
+        
+        <tr>
+            <td>When match ends:</td>
+            <td>
+                <input type="radio" id="match_end_vibration_0" name="match_end_vibration" value="0"><label for="match_end_vibration_0" class="toggle-left">Ignore</label><input type="radio" id="match_end_vibration_1" name="match_end_vibration" value="1"><label for="match_end_vibration_1" class="toggle-right">Vibrate</label>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>Before match ends:</td>
+            <td>
+                <input type="radio" id="before_match_end_vibration_0" name="before_match_end_vibration" value="0" onclick="updateBeforeMatchEndsTime(this.value)"><label for="before_match_end_vibration_0" class="toggle-left">Ignore</label><input type="radio" id="before_match_end_vibration_1" name="before_match_end_vibration" value="1" onclick="updateBeforeMatchEndsTime(this.value)"><label for="before_match_end_vibration_1" class="toggle-right">Vibrate</label>
+            </td>
+        </tr>
+
+        <tr id="before_match_end_time">
+            <td></td>
+            <td>
+                <select id="before_match_end_time_hours" name="before_match_end_time_hours" class="no-right-margin">
+                    <option value="0" selected="selected">&nbsp;0</option>
+                    <option value="1">&nbsp;1</option>
+                    <option value="2">&nbsp;2</option>
+                    <option value="3">&nbsp;3</option>
+                    <option value="4">&nbsp;4</option>
+                    <option value="5">&nbsp;5</option>
+                </select>
+                :
+                <select id="before_match_end_time_minutes" name="before_match_end_time_minutes" class="no-left-margin">
+                    <option value="0" selected="selected">00</option>
+                    <option value="1">01</option>
+                    <option value="2">02</option>
+                    <option value="3">03</option>
+                </select>
+                h<br>
+                before match ends
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <col class="left-column"><col class="right-column">
+        
+        <tr><th colspan="2">Visual Settings</th></tr>
+        
+        <tr>
+            <td>Show timer:</td>
+            <td>
+                <input type="radio" id="show_timer_0" name="show_timer" value="0"><label for="show_timer_0" class="toggle-left">Off</label><input type="radio" id="show_timer_1" name="show_timer" value="1"><label for="show_timer_1" class="toggle-right">On</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td>When showing opponent:</td>
+            <td>
+                <input type="radio" id="rotation_lock_1" name="rotation_lock" value="1"><label for="rotation_lock_1" class="toggle-left">Ignore</label><input type="radio" id="rotation_lock_0" name="rotation_lock" value="0"><label for="rotation_lock_0" class="toggle-right">Rotate</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Color scheme:</td>
+            <td>
+                <input type="radio" id="invert_colors_0" name="invert_colors" value="0"><label for="invert_colors_0" class="toggle-left">Light</label><input type="radio" id="invert_colors_1" name="invert_colors" value="1"><label for="invert_colors_1" class="toggle-right">Dark</label>
+            </td>
+        </tr>
+    </table>
+
+    <input type="submit" id="save" value="Save"><label for="save">Save</label>
+
+    </form>
+    <script>
+        /* Comments are multi-line comments spanning single lines only */
+        /* by intention: the build process appends this file as JavaScript */
+        /* string to mtg-counter.js. Other types of comments would destroy */
+        /* the string and therefore the remaining JavaScript and HTML */
+        /* in this file as well. (See /wscript) */
+
+        function initSelect(form, name, min, max, isMinutes) {
+            var select = form[name];
+            for (var i = min; i <= max; i++){
+                var option = document.createElement('option');
+                option.value = i;
+                option.innerHTML = isMinutes && i < 10 ? '0'+i : i;
+                select.appendChild(option);
+            }
+        }
+
+        function initSelects() {
+            var form = document.getElementById('form');
+            initSelect(form, 'life_default', 1, 99, false);
+            initSelect(form, 'match_duration_hours', 0, 9, false);
+            initSelect(form, 'match_duration_minutes', 0, 60, true);
+            initSelect(form, 'before_match_end_time_hours', 0, 9, false);
+            initSelect(form, 'before_match_end_time_minutes', 0, 60, true);
+        }
+
+        function updateFormFromConfig(config) {
+            convertTimeToHoursAndMinutes(config);
+
+            var form = document.getElementById('form');
+            for (var configKey in config) {
+                var elements = form[configKey];
+                if (elements) {
+                    if (elements.tagName === 'SELECT') {
+                        /* <select> */
+                        elements.value = config[configKey];
+                    } else {
+                        /* <input type="radio"> */
+                        for (var i = 0; i < elements.length; i++) {
+                            var radio = elements[i];
+                            radio.checked = radio.value == config[configKey];
+                        }
+                    }
+                }
+            }
+            updateBeforeMatchEndsTime(config['before_match_end_vibration']);
+        }
+        function updateFormFromDefaultConfig() {
+            /* The keyword below will be replaced at runtime (incl. quotes). */
+            /* See the showConfiguration event listener in mtg-counter.js. */
+            var config = JSON.parse('"CONFIG_JSON_REPLACED_AT_RUNTIME"');
+            updateFormFromConfig(config);
+        }
+
+        function updateBeforeMatchEndsTime(vibrationOn) {
+            vibrationOn = parseInt(vibrationOn);
+            var timeRow = document.getElementById('before_match_end_time');
+            timeRow.setAttribute('class', vibrationOn ? '' : 'hidden');
+        }
+
+        function convertTimeToHoursAndMinutes(config, name) {
+            var time = config[name];
+            config[name+'_hours'] = Math.floor(time / 60);
+            config[name+'_minutes'] = time % 60;
+            delete config[name];
+        }
+        function convertHoursAndMinutesToTime(config, name) {
+            config[name] = config[name+'_hours'] * 60 + config[name+'_minutes'];
+            delete config[name+'_hours'];
+            delete config[name+'_minutes'];
+        }
+
+        function readConfigFromForm() {
+            config = {};
+            var form = document.getElementById('form');
+            /* read selects */
+            var selects = form.getElementsByTagName('select');
+            for (var i = 0; i < selects.length; i++) {
+                config[selects[i].name] = parseInt(selects[i].value);
+            }
+            convertHoursAndMinutesToTime(config, 'match_duration');
+            convertHoursAndMinutesToTime(config, 'before_match_end_time');
+            /* read radios */
+            var inputs = form.getElementsByTagName('input');
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].checked) {
+                    config[inputs[i].name] = parseInt(inputs[i].value);
+                }
+            }
+            return config;
+        }
+        function onSubmit(e) {
+            var config = readConfigFromForm();
+            window.location.href = "pebblejs://close#" + JSON.stringify(config);
+            return false;
+        }
+
+        (function() {
+            initSelects();
+            updateFormFromDefaultConfig();
+        })();
+    </script>
+</body>
+</html>

@@ -1,15 +1,26 @@
 {
   "uuid": "16eeb053-da37-4d54-8cea-5db05c8d86e9",
-  "shortName": "mtg-counter",
-  "longName": "mtg-counter",
-  "companyName": "MakeAwesomeHappen",
+  "shortName": "MTG Counter",
+  "longName": "Life Counter for Magic the Gathering",
+  "companyName": "Frank Schlegel",
   "versionCode": 1,
   "versionLabel": "1.0.0",
   "watchapp": {
     "watchface": false
   },
+  "capabilities": [ 
+    "configurable"
+  ],
   "appKeys": {
-    "dummy": 0
+    "life_default": 0,
+    "match_duration": 1,
+    "match_end_vibration": 2,
+    "before_match_end_vibration": 3,
+    "before_match_end_time": 4,
+    "show_timer": 5,
+    "rotation_lock": 6,
+    "invert_colors": 7,
+    "request_config": 100
   },
   "resources": {
     "media": [
