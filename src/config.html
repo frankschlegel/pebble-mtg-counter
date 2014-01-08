@@ -166,7 +166,7 @@ Modified for magic-mtg-counter.
         <tr id="before_match_end_time">
             <td></td>
             <td>
-                <select id="before_match_end_hours" name="before_match_end_hours" class="no-right-margin">
+                <select id="before_match_end_time_hours" name="before_match_end_time_hours" class="no-right-margin">
                     <option value="0" selected="selected">&nbsp;0</option>
                     <option value="1">&nbsp;1</option>
                     <option value="2">&nbsp;2</option>
@@ -175,7 +175,7 @@ Modified for magic-mtg-counter.
                     <option value="5">&nbsp;5</option>
                 </select>
                 :
-                <select id="before_match_end_minutes" name="before_match_end_minutes" class="no-left-margin">
+                <select id="before_match_end_time_minutes" name="before_match_end_time_minutes" class="no-left-margin">
                     <option value="0" selected="selected">00</option>
                     <option value="1">01</option>
                     <option value="2">02</option>
@@ -239,10 +239,13 @@ Modified for magic-mtg-counter.
             initSelect(form, 'life_points', 1, 99, false);
             initSelect(form, 'match_duration_hours', 0, 9, false);
             initSelect(form, 'match_duration_minutes', 0, 60, true);
-            initSelect(form, 'before_match_end_hours', 0, 9, false);
-            initSelect(form, 'before_match_end_minutes', 0, 60, true);
+            initSelect(form, 'before_match_end_time_hours', 0, 9, false);
+            initSelect(form, 'before_match_end_time_minutes', 0, 60, true);
         }
+
         function updateFormFromConfig(config) {
+            convertTimeToHoursAndMinutes(config);
+
             var form = document.getElementById('form');
             for (var configKey in config) {
                 var elements = form[configKey];
@@ -264,19 +267,7 @@ Modified for magic-mtg-counter.
         function updateFormFromDefaultConfig() {
             /* The keyword below will be replaced at runtime (incl. quotes). */
             /* See the showConfiguration event listener in mtg-counter.js. */
-            //var config = JSON.parse('"CONFIG_JSON_REPLACED_AT_RUNTIME"');
-            var config = {
-                "life_points": 20,
-                "match_duration_hours": 0,
-                "match_duration_minutes": 50,
-                "match_end_vibration": 1,
-                "before_match_end_vibration": 0,
-                "before_match_end_hours": 0,
-                "before_match_end_minutes": 10,
-                "show_timer": 1,
-                "rotation_lock": 0,
-                "invert_colors": 0
-            };
+            var config = JSON.parse('"CONFIG_JSON_REPLACED_AT_RUNTIME"');
             updateFormFromConfig(config);
         }
 
@@ -284,6 +275,18 @@ Modified for magic-mtg-counter.
             vibrationOn = parseInt(vibrationOn);
             var timeRow = document.getElementById('before_match_end_time');
             timeRow.setAttribute('class', vibrationOn ? '' : 'hidden');
+        }
+
+        function convertTimeToHoursAndMinutes(config, name) {
+            var time = config[name];
+            config[name+'_hours'] = Math.floor(time / 60);
+            config[name+'_minutes'] = time % 60;
+            delete config[name];
+        }
+        function convertHoursAndMinutesToTime(config, name) {
+            config[name] = config[name+'_hours'] * 60 + config[name+'_minutes'];
+            delete config[name+'_hours'];
+            delete config[name+'_minutes'];
         }
 
         function readConfigFromForm() {
@@ -294,6 +297,8 @@ Modified for magic-mtg-counter.
             for (var i = 0; i < selects.length; i++) {
                 config[selects[i].name] = parseInt(selects[i].value);
             }
+            convertHoursAndMinutesToTime(config, 'match_duration');
+            convertHoursAndMinutesToTime(config, 'before_match_end');
             /* read radios */
             var inputs = form.getElementsByTagName('input');
             for (var i = 0; i < inputs.length; i++) {

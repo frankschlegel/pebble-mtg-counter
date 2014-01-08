@@ -26,29 +26,15 @@
  */
 
 // the config dict is sent as app message to the watch
-var SECONDS_MODE_NEVER    = 0,
-    SECONDS_MODE_IFNOTLOW = 1,
-    SECONDS_MODE_ALWAYS   = 2,
-    BATTERY_MODE_NEVER    = 0,
-    BATTERY_MODE_IF_LOW   = 1,
-    BATTERY_MODE_ALWAYS   = 2;
-    DATE_MODE_NEVER       = 0,
-    DATE_MODE_ALWAYS      = 1;
-    BLUETOOTH_MODE_NEVER  = 0;
-    BLUETOOTH_MODE_IFOFF  = 1;
-    BLUETOOTH_MODE_ALWAYS = 2;
-    GRAPHICS_MODE_NORMAL  = 0;
-    GRAPHICS_MODE_INVERT  = 1;
-    CONNLOST_MODE_IGNORE  = 0;
-    CONNLOST_MODE_WARN    = 1;
-
 var config = {
-    seconds_mode:   SECONDS_MODE_ALWAYS,
-    battery_mode:   BATTERY_MODE_IF_LOW,
-    date_mode:      DATE_MODE_ALWAYS,
-    bluetooth_mode: BLUETOOTH_MODE_NEVER,
-    graphics_mode:  GRAPHICS_MODE_NORMAL,
-    connlost_mode:  CONNLOST_MODE_IGNORE,
+    "life_points": 20,
+    "match_duration": 50,
+    "match_end_vibration": 1,
+    "before_match_end_vibration": 0,
+    "before_match_end_time": 10,
+    "show_timer": 1,
+    "rotation_lock": 0,
+    "invert_colors": 0,
 };
 
 // config_html will be assigned the contents of config.html during build (See /wscript).

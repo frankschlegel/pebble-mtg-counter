@@ -12,12 +12,14 @@
     "configurable"
   ],
   "appKeys": {
-    "seconds_mode": 0,
-    "battery_mode": 1,
-    "date_mode": 2,
-    "bluetooth_mode": 3,
-    "graphics_mode": 4,
-    "connlost_mode": 5,
+    "life_points": 0,
+    "match_duration": 1,
+    "match_end_vibration": 2,
+    "before_match_end_vibration": 3,
+    "before_match_end_time": 4,
+    "show_timer": 5,
+    "rotation_lock": 6,
+    "invert_colors": 7,
     "request_config": 100
   },
   "resources": {
