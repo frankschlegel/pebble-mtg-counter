@@ -92,6 +92,7 @@ static void score_layer_update(ScoreLayer* score_layer) {
 
     GRect bitmap_bounds = digit_bitmap->bounds;
     digits_width += bitmap_bounds.size.w;
+    if (digits_height == 0) digits_height = bitmap_bounds.size.h;
 
     BitmapLayer* digit_layer = bitmap_layer_create(bitmap_bounds);
     bitmap_layer_set_bitmap(digit_layer, digit_bitmap);
@@ -101,8 +102,9 @@ static void score_layer_update(ScoreLayer* score_layer) {
   }
 
   GRect background_layer_frame = layer_get_frame(score_layer->background_layer);
-  int margin = (background_layer_frame.size.w - digits_width) / 2;
-  if (margin < 0) margin = 0; // digits will not fit into layer...
+  int margin_x = (background_layer_frame.size.w - digits_width) / 2;
+  if (margin_x < 0) margin_x = 0; // digits will not fit into layer...
+  int margin_y = (background_layer_frame.size.h - digits_height) / 2;
 
   // 2. iteration: place according to index, orientation and size in background layer
   uint32_t current_x = 0;
@@ -113,8 +115,8 @@ static void score_layer_update(ScoreLayer* score_layer) {
 
     GRect frame = layer_get_frame((Layer*) layer);
     frame.origin = (GPoint) {
-      .x = margin + current_x,
-      .y = 0,
+      .x = margin_x + current_x,
+      .y = margin_y,
     };
     layer_set_frame((Layer*) layer, frame);
 
