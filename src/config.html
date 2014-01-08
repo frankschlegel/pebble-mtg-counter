@@ -117,9 +117,6 @@ Modified for magic-mtg-counter.
             <td><label for="life_points">Initial life points:</label></td>
             <td>
                 <select id="life_points" name="life_points">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
                 </select>
             </td>
         </tr>
@@ -128,12 +125,6 @@ Modified for magic-mtg-counter.
             <td><label for="match_duration_hours">Match duration:</label></td>
             <td>
                 <select id="match_duration_hours" name="match_duration_hours" class="no-right-margin">
-                    <option value="0" selected="selected">&nbsp;0</option>
-                    <option value="1">&nbsp;1</option>
-                    <option value="2">&nbsp;2</option>
-                    <option value="3">&nbsp;3</option>
-                    <option value="4">&nbsp;4</option>
-                    <option value="5">&nbsp;5</option>
                 </select>
                 :
                 <select id="match_duration_minutes" name="match_duration_minutes" class="no-left-margin">
@@ -188,8 +179,8 @@ Modified for magic-mtg-counter.
                 before match ends
             </td>
         </tr>
-
     </table>
+
     <table>
         <col class="left-column"><col class="right-column">
         
@@ -221,28 +212,92 @@ Modified for magic-mtg-counter.
 
     </form>
     <script>
-        /* (Comments are multi-line comments spanning single lines only */
-        /*  by intention: the build process appends this file as JavaScript */
-        /*  string to mtg-counter.js. Other types of comments would destroy */
-        /*  the string and therefore the remaining JavaScript and HTML */
-        /*  in this file as well. (See /wscript) */
+        /* Comments are multi-line comments spanning single lines only */
+        /* by intention: the build process appends this file as JavaScript */
+        /* string to mtg-counter.js. Other types of comments would destroy */
+        /* the string and therefore the remaining JavaScript and HTML */
+        /* in this file as well. (See /wscript) */
 
-        /* The keyword below will be replaced at runtime (incl. quotes). */
-        /* See the showConfiguration event listener in mtg-counter.js. */
-        var config = JSON.parse('"CONFIG_JSON_REPLACED_AT_RUNTIME"');
-        for (var which in config) {
-            if (form[which]) for (var i = 0; i < form[which].length; i++) {
-                var radio = form[which][i];
-                radio.checked = radio.value == config[which];
+        function initSelect(form, name, min, max, isMinutes) {
+            var select = form[name];
+            for (var i = min; i <= max; i++){
+                var option = document.createElement('option');
+                option.value = i;
+                option.innerHTML = isMinutes && i < 10 ? '0'+i : i;
+                select.appendChild(option);
             }
         }
+
+        function initSelects() {
+            var form = document.getElementById('form');
+            initSelect(form, 'life_points', 1, 99, false);
+            initSelect(form, 'match_duration_hours', 0, 9, false);
+            initSelect(form, 'match_duration_minutes', 0, 60, true);
+            initSelect(form, 'before_match_end_hours', 0, 9, false);
+            initSelect(form, 'before_match_end_minutes', 0, 60, true);
+        }
+        function updateFormFromConfig(config) {
+            var form = document.getElementById('form');
+            for (var configKey in config) {
+                var elements = form[configKey];
+                if (elements) {
+                    if (elements.tagName === 'SELECT') {
+                        /* <select> */
+                        elements.value = config[configKey];
+                    } else {
+                        /* <input type="radio"> */
+                        for (var i = 0; i < elements.length; i++) {
+                            var radio = elements[i];
+                            radio.checked = radio.value == config[configKey];
+                        }
+                    }
+                }
+            }
+        }
+        function updateFormFromDefaultConfig() {
+            /* The keyword below will be replaced at runtime (incl. quotes). */
+            /* See the showConfiguration event listener in mtg-counter.js. */
+            //var config = JSON.parse('"CONFIG_JSON_REPLACED_AT_RUNTIME"');
+            var config = {
+                "life_points": 20,
+                "match_duration_hours": 0,
+                "match_duration_minutes": 50,
+                "match_end_vibration": 1,
+                "before_match_end_vibration": 0,
+                "before_match_end_hours": 0,
+                "before_match_end_minutes": 10,
+                "show_timer": 1,
+                "rotation_lock": 0,
+                "invert_colors": 0
+            };
+            updateFormFromConfig(config);
+        }
+
+        (function() {
+            initSelects();
+            updateFormFromDefaultConfig();
+        })();
+
+        function readConfigFromForm() {
+            config = {};
+            var form = document.getElementById('form');
+            /* read selects */
+            var selects = form.getElementsByTagName('select');
+            for (var i = 0; i < selects.length; i++) {
+                config[selects[i].name] = parseInt(selects[i].value);
+            }
+            /* read radios */
+            var inputs = form.getElementsByTagName('input');
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].checked) {
+                    config[inputs[i].name] = parseInt(inputs[i].value);
+                }
+            }
+            return config;
+        }
         function onSubmit(e) {
-            var result = {};
-            var inputs = form.getElementsByTagName("input");
-            for (var i = 0; i < inputs.length; i++)
-                if (inputs[i].checked)
-                    result[inputs[i].name] = parseInt(inputs[i].value);
-            window.location.href = "pebblejs://close#" + JSON.stringify(result);
+            var config = readConfigFromForm();
+            window.location.href = "pebblejs://close#" + JSON.stringify(config);
             return false;
         }
     </script>
