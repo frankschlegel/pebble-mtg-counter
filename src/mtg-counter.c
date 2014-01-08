@@ -343,6 +343,7 @@ static void init(void) {
     .load = main_window_load,
     .unload = main_window_unload,
   });
+  window_set_status_bar_icon(main_window, gbitmap_create_with_resource(RESOURCE_ID_IMAGE_STATUS_BAR_ICON));
   window_stack_push(main_window, true /*animated*/);
 
   // register callback for match timer

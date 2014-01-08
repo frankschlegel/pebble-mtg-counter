@@ -14,6 +14,17 @@
   "resources": {
     "media": [
       {
+        "menuIcon": true,
+        "type": "png",
+        "name": "IMAGE_MENU_ICON",
+        "file": "images/menu_icon.png"
+      },
+      {
+        "type": "png",
+        "name": "IMAGE_STATUS_BAR_ICON",
+        "file": "images/status_bar_icon.png"
+      },
+      {
         "type": "png",
         "name": "IMAGE_ACTION_ICON_PLUS",
         "file": "images/action_icon_plus.png"
