@@ -84,6 +84,7 @@ void set_menu_callbacks(MTGCounterMenuSelectionCallbacks callbacks) {
 void show_menu() {
   if (window == NULL) {
     window = window_create();
+    window_set_fullscreen(window, true);
     window_set_window_handlers(window, (WindowHandlers) {
       .load = window_load,
       .unload = window_unload,
