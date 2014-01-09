@@ -15,7 +15,6 @@ static void autorotate_on_check_orientation_timer(void* unused);
 
 
 void autorotate_init() {
-  timer_orientation_check = NULL;
 }
 void autorotate_deinit() {
   autorotate_disable(false /* rotate_to_normal */);
