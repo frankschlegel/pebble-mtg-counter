@@ -5,6 +5,7 @@
 
 #include "state.h"
 #include "ui.h"
+#include "match_time_notifications.h"
 #include "match_timer.h"
 #include "autorotate.h"
 #include "invert_colors.h"
@@ -80,12 +81,27 @@ void handle_config_received_via_appmessage(DictionaryIterator *received)
 
 void config_handle_update()
 {
-  // TODO update UI, timers, ...
+  config_update_match_end_vibration();
+  config_update_before_match_end_vibration();
   config_update_show_timer();
   config_update_rotation_lock();
   config_update_invert_colors();
 }
 
+void config_update_match_end_vibration() {
+  if (match_end_vibration) {
+    match_time_notifications_end_enable(match_start_time, match_duration);
+  } else {
+    match_time_notifications_end_disable();
+  }
+}
+void config_update_before_match_end_vibration() {
+  if (before_match_end_vibration) {
+    match_time_notifications_before_end_enable(match_start_time, match_duration, before_match_end_time);
+  } else {
+    match_time_notifications_before_end_disable();
+  }
+}
 static void config_update_show_timer() {
   if (show_timer) {
     match_timer_enable();

@@ -5,6 +5,7 @@
 #include "persistence.h"
 #include "appmessage.h"
 
+#include "match_time_notifications.h"
 #include "match_timer.h"
 #include "autorotate.h"
 #include "invert_colors.h"
@@ -323,6 +324,7 @@ static void init(void)
   read_persistent_state();
 
   // initialize modules
+  match_time_notifications_init();
   match_timer_init();
   autorotate_init();
   invert_colors_init();
@@ -359,6 +361,7 @@ static void deinit(void)
   safe_persistent_state();
 
   // unregister modules
+  match_time_notifications_deinit();
   match_timer_deinit();
   autorotate_deinit();
   invert_colors_deinit();
