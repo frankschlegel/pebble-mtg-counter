@@ -76,7 +76,7 @@ Modified for pebble-mtg-counter.
     }
     select.no-left-margin { margin-left: 0px; }
     select.no-right-margin { margin-right: 0px; }
-    input[type=submit] + label {
+    input[type=submit] + label, .submit-button-placeholder {
         padding: 10px 0;
         width: 100%;
         font-size: 32px;
@@ -106,6 +106,19 @@ Modified for pebble-mtg-counter.
         border-radius: 0 10px 10px 0;
         width: 70px;
     }
+
+    #save_button_background {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: auto;
+        padding: 5px 10px 8px 8px;
+        background-color: #18384f;
+        box-shadow: 0px -3px 8px #18384f;
+    }
+
+    #save_button_placeholder + label { visibility: hidden; }
 
     .hidden { display: none; }
 
@@ -214,7 +227,10 @@ Modified for pebble-mtg-counter.
         </tr>
     </table>
 
-    <input type="submit" id="save" value="Save"><label for="save">Save</label>
+    <div id="save_button_background">
+        <input type="submit" id="save_button" value="Save"><label for="save_button">Save</label>
+    </div>
+    <input type="submit" id="save_button_placeholder" value="Save"><label for="save_button_placeholder">Save</label>
 
     </form>
     <script>
