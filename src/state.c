@@ -35,4 +35,6 @@ void reset_match_state() {
   update_games_won_counter_opponent();
   update_games_won_counter_player();
   match_timer_update();
+  config_update_match_end_vibration();
+  config_update_before_match_end_vibration();
 }

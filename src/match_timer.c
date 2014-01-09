@@ -18,7 +18,9 @@ void match_timer_init()
   text_layer_set_background_color(layer, GColorBlack);
   text_layer_set_text_color(layer, GColorWhite);
 }
-void match_timer_deinit() {
+void match_timer_deinit()
+{
+  tick_timer_service_unsubscribe();
   text_layer_destroy(layer);
 }
 
