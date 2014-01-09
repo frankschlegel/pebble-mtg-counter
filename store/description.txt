@@ -1,0 +1,8 @@
+Count your Magic: The Gathering life and game scores with this Pebble watchapp!
+
+Beautifully designed and packed with features to be the ideal companion on you next magic tournament:
+- keep track of your and your opponent's life and won games (and draws)
+- scores rotate when showing to your opponent
+- game timer & notifications via vibration
+- dark & light theme
+- all configurable on your phone
