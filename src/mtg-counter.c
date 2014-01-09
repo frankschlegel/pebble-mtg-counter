@@ -5,6 +5,7 @@
 #include "persistence.h"
 #include "appmessage.h"
 
+#include "match_timer.h"
 #include "autorotate.h"
 #include "invert_colors.h"
 
@@ -29,7 +30,6 @@ static TextLayer* text_layer_life_player;
 static TextLayer* text_layer_games_won_opponent;
 static TextLayer* text_layer_games_won_player;
 static TextLayer* text_layer_games_draw;
-static TextLayer* text_layer_match_timer;
 
 static ActionBarLayer* action_bar_layer;
 static GBitmap* action_icon_plus;
@@ -66,14 +66,6 @@ void update_action_bar() {
 
   action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_UP, icon);
   action_bar_layer_set_icon(action_bar_layer, BUTTON_ID_DOWN, icon);
-}
-
-void update_match_timer() {
-  time_t diff = time(NULL) - match_start_time;
-
-  static char text[9];
-  strftime(text, sizeof(text), "%H:%M:%S", localtime(&diff));
-  text_layer_set_text(text_layer_match_timer, text);
 }
 
 static void opponent_wins() {
@@ -138,11 +130,6 @@ static void click_config_provider(void* context) {
   window_long_click_subscribe(BUTTON_ID_SELECT, 0, select_long_click_handler, NULL);
   window_single_repeating_click_subscribe(BUTTON_ID_UP,   REPEATING_CLICK_INTERVAL, up_repeating_click_handler);
   window_single_repeating_click_subscribe(BUTTON_ID_DOWN, REPEATING_CLICK_INTERVAL, down_repeating_click_handler);
-}
-
-
-static void second_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_match_timer();
 }
 
 
@@ -231,15 +218,11 @@ static void main_window_load(Window* window) {
   update_player_life_counter();
   layer_add_child(window_layer, score_layer_get_layer(score_layer_life_player));
 
-  // init timer layer
-  int timer_width = 80;
-  text_layer_match_timer = text_layer_create((GRect) { .origin = {center_x - timer_width / 2, 59}, .size = { timer_width, 24 } });
-  text_layer_set_text_alignment(text_layer_match_timer, GTextAlignmentCenter);
-  text_layer_set_font(text_layer_match_timer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
-  text_layer_set_background_color(text_layer_match_timer, GColorBlack);
-  text_layer_set_text_color(text_layer_match_timer, GColorWhite);
-  update_match_timer();
-  layer_add_child(window_layer, text_layer_get_layer(text_layer_match_timer));
+  // add match timer layer
+  const int match_timer_width = 80;
+  Layer* match_timer_layer = match_timer_get_layer();
+  layer_set_frame(match_timer_layer, (GRect) { .origin = {center_x - match_timer_width / 2, 59}, .size = { match_timer_width, 24 } });
+  layer_add_child(window_layer, match_timer_layer);
 
   // init game score layers
   GRect game_score_opponent_frame = (GRect) {
@@ -292,16 +275,13 @@ static void main_window_load(Window* window) {
   update_games_draw_counter();
   layer_add_child(game_score_draw_background_layer, text_layer_get_layer(text_layer_games_draw));
 
-  // add inverter layer
-  Layer* inverter_layer = invert_colors_get_layer();
-  layer_set_frame(inverter_layer, bounds);
-  layer_add_child(window_layer, inverter_layer);
+  // set inverter layer frame. will be added in main_window_appear()
+  layer_set_frame(invert_colors_get_layer(), bounds);
 }
 
 static void main_window_unload(Window* window) {
   text_layer_destroy(text_layer_life_opponent);
   text_layer_destroy(text_layer_life_player);
-  text_layer_destroy(text_layer_match_timer);
   action_bar_layer_destroy(action_bar_layer);
   // destory the menu when the main window onloads only
   destroy_menu();
@@ -343,6 +323,7 @@ static void init(void)
   read_persistent_state();
 
   // initialize modules
+  match_timer_init();
   autorotate_init();
   invert_colors_init();
 
@@ -364,9 +345,6 @@ static void init(void)
   window_set_status_bar_icon(main_window, gbitmap_create_with_resource(RESOURCE_ID_IMAGE_STATUS_BAR_ICON));
   window_stack_push(main_window, true /*animated*/);
 
-  // register callback for match timer
-  tick_timer_service_subscribe(SECOND_UNIT, second_tick_handler);
-
   // update the app to reflect current configuration
   config_handle_update();
 
@@ -381,6 +359,7 @@ static void deinit(void)
   safe_persistent_state();
 
   // unregister modules
+  match_timer_deinit();
   autorotate_deinit();
   invert_colors_deinit();
 

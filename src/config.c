@@ -5,6 +5,7 @@
 
 #include "state.h"
 #include "ui.h"
+#include "match_timer.h"
 #include "autorotate.h"
 #include "invert_colors.h"
 
@@ -20,6 +21,7 @@ bool invert_colors = INVERT_COLORS_DEFAULT;
 
 bool has_config = false; // prevents saving default config in JavaScript. See deinit()
 
+static void config_update_show_timer();
 static void config_update_rotation_lock();
 static void config_update_invert_colors();
 
@@ -79,10 +81,18 @@ void handle_config_received_via_appmessage(DictionaryIterator *received)
 void config_handle_update()
 {
   // TODO update UI, timers, ...
+  config_update_show_timer();
   config_update_rotation_lock();
   config_update_invert_colors();
 }
 
+static void config_update_show_timer() {
+  if (show_timer) {
+    match_timer_enable();
+  } else {
+    match_timer_disable();
+  }
+}
 static void config_update_rotation_lock() {
   if (rotation_lock) {
     autorotate_disable(true /* rotate back to normal */);

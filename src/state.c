@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include "ui.h"
+#include "match_timer.h"
 
 
 /*
@@ -33,5 +34,5 @@ void reset_match_state() {
   match_start_time = time(NULL);
   update_games_won_counter_opponent();
   update_games_won_counter_player();
-  update_match_timer();
+  match_timer_update();
 }
