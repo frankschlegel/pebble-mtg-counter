@@ -76,6 +76,7 @@ static void update_score(ScoreLayer* me, GContext* ctx) {
   // 1. iteration: create digit bitmaps and determine required size
   uint32_t digits_width = 0;
   uint32_t digits_height = 0;
+  bool underline_digits = true; // check if we need to underline ambiguous ('6' & '9') digits
   GBitmap** bitmaps = (GBitmap**) malloc(num_digits_needed * sizeof(GBitmap*));
   for (uint8_t i = 0; i < num_digits_needed; ++i)
   {
@@ -86,6 +87,11 @@ static void update_score(ScoreLayer* me, GContext* ctx) {
     digits_width += bitmap_bounds.size.w;
     if (digits_height == 0) digits_height = bitmap_bounds.size.h;
 
+    if (digits[i] != 6 && digits[i] != 9) {
+      // we only need to underline digits in numbers that only contain ambiguous digits
+      underline_digits = false;
+    }
+
     bitmaps[i] = digit_bitmap;
 
   }
@@ -94,6 +100,10 @@ static void update_score(ScoreLayer* me, GContext* ctx) {
   int margin_x = (layer_frame.size.w - digits_width) / 2;
   if (margin_x < 0) margin_x = 0; // digits will not fit into layer...
   int margin_y = (layer_frame.size.h - digits_height) / 2;
+  if (me->orientation == ScoreLayerOrientationUpsideDown) {
+    // compensate slightly off margin when rotated
+    margin_y += 1;
+  }
 
   // 2. iteration: draw according to index, orientation and size on layer
   uint32_t current_x = 0;
@@ -108,8 +118,27 @@ static void update_score(ScoreLayer* me, GContext* ctx) {
       .y = margin_y,
     };
 
-    // draw onto layer
+    // draw digit onto layer
     graphics_draw_bitmap_in_rect(ctx, bitmap, frame);
+
+    // underline digit if needed
+    if (underline_digits) {
+      unsigned short left_kerning = 2; //XXX: the '6' and '9' bitmaps have a left kerning
+      unsigned short vertical_margin = 1;
+      GPoint start, end;
+
+      if (me->orientation == ScoreLayerOrientationNormal) {
+        // draw below
+        start = (GPoint) {.x = frame.origin.x + left_kerning, .y = frame.origin.y + frame.size.h + vertical_margin};
+        end   = (GPoint) {.x = frame.origin.x + frame.size.w - 1, .y = frame.origin.y + frame.size.h + vertical_margin};
+      } else {
+        // draw above
+        start = (GPoint) {.x = frame.origin.x, .y = frame.origin.y - vertical_margin - 1};
+        end   = (GPoint) {.x = frame.origin.x + frame.size.w - left_kerning - 1, .y = frame.origin.y - vertical_margin - 1};
+      }
+
+      graphics_draw_line(ctx, start, end);
+    }
 
     current_x += frame.size.w;
   }
