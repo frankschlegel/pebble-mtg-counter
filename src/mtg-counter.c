@@ -284,8 +284,7 @@ static void main_window_unload(Window* window) {
   text_layer_destroy(text_layer_life_opponent);
   text_layer_destroy(text_layer_life_player);
   action_bar_layer_destroy(action_bar_layer);
-  // destory the menu when the main window onloads only
-  destroy_menu();
+
   gbitmap_destroy(action_icon_plus);
   gbitmap_destroy(action_icon_minus);
   gbitmap_destroy(action_icon_toggle);
