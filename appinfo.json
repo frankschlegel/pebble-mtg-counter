@@ -4,7 +4,7 @@
   "longName": "Life Counter for Magic the Gathering",
   "companyName": "Frank Schlegel",
   "versionCode": 2,
-  "versionLabel": "1.1.0",
+  "versionLabel": "1.2",
   "watchapp": {
     "watchface": false
   },
