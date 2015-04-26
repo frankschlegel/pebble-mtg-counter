@@ -31,9 +31,11 @@ void reset_match_state() {
   reset_game_state();
   games_won_opponent = GAMES_SCORE_DEFAULT;
   games_won_player = GAMES_SCORE_DEFAULT;
+  games_draw = GAMES_SCORE_DEFAULT;
   match_start_time = time(NULL);
   update_games_won_counter_opponent();
   update_games_won_counter_player();
+  update_games_draw_counter();
   match_timer_update();
   config_update_match_end_vibration();
   config_update_before_match_end_vibration();
